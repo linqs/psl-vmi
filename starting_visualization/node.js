@@ -197,6 +197,7 @@ function findNode(arg) {
   console.log('circle[data-atom="' + arg.value + '"]');
 }
 
+var printed_links = []
 function selectNeighbor(links) {
     links.each(function(index) {
     console.log('HERE');
@@ -207,7 +208,11 @@ function selectNeighbor(links) {
     $('circle[data-atom="' + links[index].getAttribute('data-source') + '"] ~ text').show();
     $('circle[data-atom="' + links[index].getAttribute('data-target') + '"] ~ text').show();
 
-    $('.sideBar').append('<p>' + links[index].getAttribute('data-rule') + " : " + links[index].getAttribute('data-satisfaction') +  '</p>');
+    if (!printed_links.includes(links[index].getAttribute('data-rule'))) {
+      $('.sideBar').append('<p>' + links[index].getAttribute('data-rule') + " : " + links[index].getAttribute('data-satisfaction') +  '</p>');
+      printed_links.push(links[index].getAttribute('data-rule'))
+      console.log(printed_links)
+    }
   });
 }
 
