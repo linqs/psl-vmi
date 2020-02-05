@@ -198,9 +198,9 @@ function findNode(arg) {
   console.log('circle[data-atom="' + arg.value + '"]');
 }
 
-var printed_links = []
 function selectNeighbor(links) {
   console.log(links)
+  var printed_links = []
     links.each(function(index) {
     console.log('HERE');
     $('circle[data-atom="' + links[index].getAttribute('data-source') + '"]').css('opacity', NEIGHBOR_NODE_OPACITY);
