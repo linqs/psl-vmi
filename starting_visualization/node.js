@@ -94,6 +94,7 @@ function main() {
      		.attr("data-target", function(edge) { return edge.target; })
 			.attr("data-rule", function(d){ return d.rule;})
 			.attr("data-satisfaction", function(d){return d.satisfaction;})
+      .attr("data-weighted_satisfaction", function(d){return d.weighted_satisfaction;})
 			.on('mouseover', showRule.show)
 			.on('mouseout', showRule.hide)
    ;
@@ -199,6 +200,7 @@ function findNode(arg) {
 
 var printed_links = []
 function selectNeighbor(links) {
+  console.log(links)
     links.each(function(index) {
     console.log('HERE');
     $('circle[data-atom="' + links[index].getAttribute('data-source') + '"]').css('opacity', NEIGHBOR_NODE_OPACITY);
@@ -210,11 +212,13 @@ function selectNeighbor(links) {
 
     if (!printed_links.includes(links[index].getAttribute('data-rule'))) {
       $('.sideBar').append('<p>' + links[index].getAttribute('data-rule') + " : " + links[index].getAttribute('data-satisfaction') +  '</p>');
+      $('.sideBar').append('<p>' + links[index].getAttribute('data-rule') + " : " + links[index].getAttribute('data-weighted_satisfaction') +  " (Weighted)" + '</p>');
+      // weighted_sat_print(index);
       printed_links.push(links[index].getAttribute('data-rule'))
-      console.log(printed_links)
     }
   });
 }
+
 
 // Selecting the node that you clicked / searched up
 function selectNode(groundAtom) {
