@@ -193,14 +193,21 @@ function reset(){
 
 function findNode(arg) {
   console.log(arg.value)
+  var lowerCaseVal = (arg.value).toLowerCase();
   // Search by Predicate
   if ($('circle[data-atom="' + arg.value + '"]').length) {
     selectNode(arg.value);
   }
   // Searched by PSL constant or variable name
-  else if ($('circle[data-var="' + arg.value + '"]').length)
+  else if ($('circle[data-var="' + lowerCaseVal + '"]').length)
   {
-    showResults(arg.value);
+    showResults(lowerCaseVal);
+  }
+  else // No results found
+  {
+    hideVisual();
+    // Add button inside sidebar div
+    $('.sideBar').append('<button type="button" id = "reset" onclick=reset()> Back </button>' );
   }
 }
 
@@ -208,6 +215,8 @@ function findNode(arg) {
 function showResults(constVar)
 {
     hideVisual();
+    // Add button inside sidebar div
+    $('.sideBar').append('<button type="button" id = "reset" onclick=reset()> Back </button>' );
     // Display matching nodes
     $('circle[data-var="' + constVar + '"]').css('opacity', SELF_NODE_OPACITY);
     $('circle[data-var="' + constVar + '"]').css('stroke-width', SELECTED_NODE_STOKE_WIDTH);
