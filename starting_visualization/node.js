@@ -27,7 +27,6 @@ function main() {
 
 	var tip = d3.tip()
   			.attr('class', 'd3-tip')
-
    			.html(function(d) {
     			return "Value: " + d.value ;
   			});
@@ -36,19 +35,19 @@ function main() {
 	var showRule = d3.tip()
 			.attr('class', 'd3-tip')
 			.html(function(d){
-				return 'Rule: ' + d.rule;
+			  return 'Rule: ' + d.rule;
 			});
 
 
 	var color = d3.scaleOrdinal(d3.schemeAccent);
 	var svg = d3.select("#psl_graph")
-			.append("svg")
+			  .append("svg")
     		.attr("width", width)
     		.attr("height", height);
 
 
 
-    	svg.call(tip);
+  svg.call(tip);
 	svg.call(showRule);
 
 	// https://medium.com/@sxywu/understanding-the-force-ef1237017d5
@@ -116,6 +115,7 @@ function main() {
         	.attr('stroke-width', '0px')
         	.attr("data-atom", function(node) { return node.groundAtom; })
         	.attr("data-type", function(node) { return node.type; })
+          .attr("data-var", function(node) {return node.var})
         	.attr('stroke-width', SELECTED_NODE_STOKE_WIDTH)
         	.on('mouseover', tip.show)
         	.on('mouseout', tip.hide)
@@ -192,10 +192,28 @@ function reset(){
 }
 
 function findNode(arg) {
+  console.log(arg.value)
+  // Search by Predicate
   if ($('circle[data-atom="' + arg.value + '"]').length) {
     selectNode(arg.value);
   }
-  console.log('circle[data-atom="' + arg.value + '"]');
+  // Searched by PSL constant or variable name
+  else if ($('circle[data-var="' + arg.value + '"]').length)
+  {
+    showResults(arg.value);
+  }
+}
+
+// Show all the nodes with the constVar data attribute
+function showResults(constVar)
+{
+    hideVisual();
+    // Display matching nodes
+    $('circle[data-var="' + constVar + '"]').css('opacity', SELF_NODE_OPACITY);
+    $('circle[data-var="' + constVar + '"]').css('stroke-width', SELECTED_NODE_STOKE_WIDTH);
+
+    // Add text to clicked node
+    $('circle[data-var="' + constVar + '"] ~ text').show();
 }
 
 function selectNeighbor(links) {
@@ -222,31 +240,37 @@ function selectNeighbor(links) {
 
 // Selecting the node that you clicked / searched up
 function selectNode(groundAtom) {
+
+    hideVisual();
+
+    // Neighbors and rules to display.
+    var targetLinks = $('line[data-target="' + groundAtom + '"]');
+    var sourceLinks = $('line[data-source="' + groundAtom + '"]');
+
+
+
+    // Add button inside sidebar div
+    $('.sideBar').append('<button type="button" id = "unselect" onclick=reset()> Unselect All </button>' );
+    selectNeighbor(targetLinks);
+    selectNeighbor(sourceLinks);
+    // Self.
+    $('circle[data-atom="' + groundAtom + '"]').css('opacity', SELF_NODE_OPACITY);
+    $('circle[data-atom="' + groundAtom + '"]').css('stroke-width', SELECTED_NODE_STOKE_WIDTH);
+    $('line[data-target="' + groundAtom + '"]').show();
+ 		$('line[data-source="' + groundAtom + '"]').show();
+
+    // Add text to clicked node
+    $('circle[data-atom="' + groundAtom + '"] ~ text').show();
+
+}
+
+function hideVisual()
+{
     // Removing all text for circle and sidebar.
-     $('circle ~ text').hide();
-     $('.sideBar').empty();	// Removing all element inside g
-     // All element.
-     $('circle').css('opacity', OTHER_NODE_OPACITY);;
-     $('circle').css('stroke-width', '0px');
-     $('line').hide();
-
-     // Neighbors and rules to display.
-     var targetLinks = $('line[data-target="' + groundAtom + '"]');
-     var sourceLinks = $('line[data-source="' + groundAtom + '"]');
-
-
-
-   // Add button inside sidebar div
-     $('.sideBar').append('<button type="button" id = "unselect" onclick=reset()> Unselect All </button>' );
-     selectNeighbor(targetLinks);
-     selectNeighbor(sourceLinks);
-         // Self.
-         $('circle[data-atom="' + groundAtom + '"]').css('opacity', SELF_NODE_OPACITY);
-         $('circle[data-atom="' + groundAtom + '"]').css('stroke-width', SELECTED_NODE_STOKE_WIDTH);
-         $('line[data-target="' + groundAtom + '"]').show();
- 		 $('line[data-source="' + groundAtom + '"]').show();
-
-         // Add text to clicked node
-         $('circle[data-atom="' + groundAtom + '"] ~ text').show();
-
+    $('circle ~ text').hide();
+    $('.sideBar').empty(); // Removing all element inside g
+    // All element.
+    $('circle').css('opacity', OTHER_NODE_OPACITY);;
+    $('circle').css('stroke-width', '0px');
+    $('line').hide();
 }
