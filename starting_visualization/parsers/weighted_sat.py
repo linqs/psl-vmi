@@ -96,12 +96,21 @@ def findLogicalRules(rules, Group, satisfaction, weighted_sat):
     rules = rules.strip()
     groundRules = rules.split(" | ")
     
-    
+    # Rgx Pattern to extract constants/variables from predicate
+    # Specifically for this dataset
+    # Constants/Variables start with a single uppercase letter and may have 0 or more lower case letters
+    constantVarRgxPattern = '([(A-Z)]{1}([a-z])\w*)'
     
     num_unobserved = 0
- #Grabbing each ground atom
+    #Grabbing each ground atom
     for atoms in groundRules:
      
+        patternMatch = re.findall(constantVarRgxPattern, atoms)
+        constantsVars = None
+        if len(patternMatch) > 0:
+            if len(patternMatch[0]):
+                constantsVars = patternMatch[0][0].lower()
+        print(constantsVars)
         # If ground atom has negation in front, parse out and just grab the ground atom within
         if atoms[0] == negated:
             groundAtom = atoms[3:-2]  # Obtain the ground atom for negated atoms
@@ -112,7 +121,9 @@ def findLogicalRules(rules, Group, satisfaction, weighted_sat):
 #         print(predicate_group)
         if groundAtom not in existingNodes:
             
-            atom_data = {'groundAtom': groundAtom, 'group': Group[predicate_group][0], 'type': Group[predicate_group][1]}
+            atom_data = {'groundAtom': groundAtom, 'group': Group[predicate_group][0], 'type': Group[predicate_group][1] }
+            if constantsVars is not None:
+                atom_data['var'] = constantsVars
             # Adding oberved / unobserved parameter
             if groundAtom in unobservedAtoms:
                 atom_data['value'] = unobVal[groundAtom]
