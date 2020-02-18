@@ -64,7 +64,7 @@ def find_unobserved_atoms():
         for line in target:
             constants = line.strip().split("\t")
             unobserved = 'LIKES(' + "'" + constants[0] + "'"+ ', ' + "'"+constants[1]+"'"+ ')'
-            print(unobserved)
+#            print(unobserved)
             likes_Obs[unobserved] = constants[2]
 
 
@@ -120,7 +120,7 @@ def findLogicalRules(rules, Group, satisfaction, weighted_sat):
                 num_unobserved +=1  # Keeping track of number of unobserved atoms in the rule
             else:
                 if predicate_group == 'LIKES':
-                    print('HERE')
+#                    print('HERE')
                     atom_data['value'] = likes_Obs[groundAtom]
                 else:
                     atom_data['value'] = 1
@@ -147,7 +147,7 @@ def findLogicalRules(rules, Group, satisfaction, weighted_sat):
             links.append({'source': groundAtoms[2], 'target': groundAtoms[1], 'rule': rules, 'satisfaction': satisfaction, 'weighted_satisfaction' : weighted_sat}) 
         else:
             links.append({'source': groundAtoms[1], 'target': groundAtoms[2], 'rule': rules, 'satisfaction': satisfaction, 'weighted_satisfaction' : weighted_sat})
-            links.append({'source': groundAtoms[0], 'target': groundAtoms[2], 'rule': rules, 'satisfaction': satisfaction, 'weighted_satisfaction' : weighted_sat}) 
+            links.append({'sosurce': groundAtoms[0], 'target': groundAtoms[2], 'rule': rules, 'satisfaction': satisfaction, 'weighted_satisfaction' : weighted_sat}) 
                                                                   
                                                                   
 
@@ -155,6 +155,8 @@ def findLogicalRules(rules, Group, satisfaction, weighted_sat):
 with open('../data/sat.txt', 'r') as data:
     find_unobserved_atoms()
     predicateGroup = findPredicates()       #Getting predicate node group 
+    print(unobservedAtoms)
+    print(unobVal)
     for line in data:
         line = line.strip()
         data_split = line.split("\t")
