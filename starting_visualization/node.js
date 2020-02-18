@@ -13,9 +13,9 @@ var SELECTED_NODE_STOKE_WIDTH = '2px';
 var SELECTED_NODE_STOKE_COLOR = '#8e8e8e';
 
 function main() {
-	var nodes = window.pslviz.nodes;
+	var nodes = window.pslviz.nodes_new;
 
-	var links = window.pslviz.links;
+	var links = window.pslviz.links_new;
 
 	var width = 1000;
 	var height = 1000;

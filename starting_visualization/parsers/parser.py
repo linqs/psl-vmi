@@ -6,35 +6,9 @@ import json
 # this would not be used later as we can get weighted sat output from PSL
 # but this is to learn the pipeline from PSL -> viz
 
-DATA_DIR = "../data/"
-DATA_FILE = "../sat.txt/"
-
-#def grab_weighted_sat():
-#    WEIGHT_INDEX = 0
-#    SAT_INDEX = 1
-#    print("Opening " + DATA_DIR + DATA_FILE)
-#    satisfaction_file = open(DATA_DIR + DATA_FILE, "r")
-#    weight_sat_pattern = r'(\d*\.\d*)+'
-#    rule_pattern = r'\((.*)'
-#    #TODO: Make rule regex so that we can make a json thats : rule  weightedSat
-#    
-#    weighted_sat_list = []
-#    for line in satisfaction_file:
-#        num_match = re.findall(weight_sat_pattern, line)
-#        if len(num_match) > 2:
-#            continue
-#        if num_match:
-#            weight = float(num_match[WEIGHT_INDEX])
-#            sat = float(num_match[SAT_INDEX])
-#            cutoff = (len(num_match[SAT_INDEX]))
-#            no_sat = str(line[0:len(line)-1 - cutoff]) #get rid of sat on end so we can regex
-#            rule_match = re.findall(rule_pattern, no_sat)
-#            
-#            rule_match = rule_match[0][:-3]
-#            weighted_sat = weight * sat
-#            weighted_sat_list.append({'weighted_sat' : weighted_sat, 'rule' : rule_match})
-
-
+DATA_DIR = "../friendship_data/"
+DATA_FILE = "/sat.txt"
+MODEL_DATA_FILE = "../friendship.data"
 
 existingNodes = []
 rule_output = []
@@ -42,11 +16,11 @@ links = []
 logical_rule = "("  #Else it is arithmetic rule
 negated = "~"
 def output_data():
-    with open('../node_new.json', 'w') as df:
+    with open('../node_friendship.json', 'w') as df:
         rule_output.reverse()
         json.dump(rule_output, df, indent = 4)
 
-    with open('../link_new.json', 'w') as df:
+    with open('../link_friendship.json', 'w') as df:
         json.dump(links,df, indent = 4)
         
 
@@ -95,7 +69,7 @@ def find_unobserved_atoms(predicates):
                             
         
 def findPredicates():
-    with open('../simple-acquaintances.data', 'r') as data:
+    with open(MODEL_DATA_FILE, 'r') as data:
         predicate = {}
         data = data.read().strip()
         data = data.split("\n\n")
@@ -171,8 +145,9 @@ def findLogicalRules(rules, Group, satisfaction, weighted_sat):
 
 
 def main():    
-    with open('../data/sat.txt', 'r') as data:
+    with open(DATA_DIR + DATA_FILE, 'r') as data:
         predicateGroup = findPredicates()       #Getting predicate node group 
+        print(predicateGroup)
         find_unobserved_atoms(predicateGroup)
 #        print(unobVal)
 #        print(unobservedAtoms)
