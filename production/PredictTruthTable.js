@@ -8,6 +8,8 @@
 //I don't really know the proper way I should be doing this with javascript so this works for now
 main();
 
+//Use a callback
+
 //E.x. What does this do (from old prototype)
 // "use strict";
 // $(document).ready(function() {
@@ -48,12 +50,20 @@ function tabulate(data, columns) {
   return table;
 }
 
+//How to load in data for D3
+// https://www.tutorialsteacher.com/d3js/loading-data-from-file-in-d3js
+
 function main() {
+
+	//document on ready
+
     // var output = window.pslviz.output;
     // var data = window.pslviz.data;
     d3.json("output.json", function(data) {
-    console.log(data);
-    // data = Object.keys(output).map(function(k) { return {key:k, value:output[k]} })
-    tabulate(data, ['Predicate', 'Prediction','Truth']);
+	    console.log(data);
+	    // data = Object.keys(output).map(function(k) { return {key:k, value:output[k]} })
+	    tabulate(data, ['Predicate', 'Prediction','Truth']);
     });
 }
+
+//create an initilize that is passed in data then hand off that data to the proper functions
