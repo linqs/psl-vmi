@@ -7,15 +7,15 @@ function show_hist(hist_data) {
     for (var i = 0; i < hist_data.length; i++) {
         var datum = {};
         datum.label = hist_data[i]["Rule"];
-        datum.value = hist_data[i]["Satisfaction"];
+        datum.value = hist_data[i]["Total Satisfaction"];
         data.push(datum);
     }
 
     var margin =  {top: 20, right: 10, bottom: 20, left: 40};
     var marginOverview = {top: 30, right: 10, bottom: 20, left: 40};
     var selectorHeight = 40;
-    var width = 2000 - margin.left - margin.right;
-    var height = 600 - margin.top - margin.bottom - selectorHeight;
+    var width = 800 - margin.left - margin.right;
+    var height = 400 - margin.top - margin.bottom - selectorHeight;
     var heightOverview = 80 - marginOverview.top - marginOverview.bottom;
 
     var maxLength = d3.max(data.map(function(d){ return d.label.length}))
