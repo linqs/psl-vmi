@@ -1,7 +1,7 @@
 
-d3.json("output_hist.json", function(data) {
-    console.log(data);
-    show_hist(data);
+d3.json("PSLVizData.json", function(data) {
+    console.log(data["SatDis"]);
+    show_hist(data["SatDis"]);
 });
 
 function show_hist(hist_data) {

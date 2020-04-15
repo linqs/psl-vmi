@@ -59,10 +59,11 @@ function main() {
 
     // var output = window.pslviz.output;
     // var data = window.pslviz.data;
-    d3.json("output.json", function(data) {
-	    console.log(data);
+    d3.json("PSLVizData.json", function(data) {
+	    // console.log(d3.keys(data));
+		console.log(data["PredictionTruth"])
 	    // data = Object.keys(output).map(function(k) { return {key:k, value:output[k]} })
-	    tabulate(data, ['Predicate', 'Prediction','Truth']);
+	    tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth']);
     });
 }
 
