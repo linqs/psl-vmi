@@ -1,9 +1,3 @@
-
-d3.json("PSLVizData.json", function(data) {
-    console.log(data["SatDis"]);
-    show_hist(data["SatDis"]);
-});
-
 function show_hist(hist_data) {
 
     console.log(hist_data.length);
@@ -152,3 +146,10 @@ function show_hist(hist_data) {
         rects.exit().remove();
     };
 }
+
+$( document ).ready(function() {
+    d3.json("PSLVizData.json", function(data) {
+        console.log(data["SatDis"]);
+        show_hist(data["SatDis"]);
+    });
+});

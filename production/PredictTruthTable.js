@@ -1,23 +1,3 @@
-// https://gist.github.com/jfreels/6734025
-// https://www.dashingd3js.com/lessons/d3-and-json
-
-
-//Currently with how the json is set up, its a jsonObject, do we need to convert it into a jsonarray?
-// data = Object.keys(ob).map(function(k) { return {key:k, value:ob[k]} })
-
-//I don't really know the proper way I should be doing this with javascript so this works for now
-main();
-
-//Use a callback
-
-//E.x. What does this do (from old prototype)
-// "use strict";
-// $(document).ready(function() {
-//     main();
-// });
-
-// d3.json('data.json', function (error,data) {
-
 function tabulate(data, columns) {
 	var table = d3.select('body').append('table')
 	var thead = table.append('thead')
@@ -50,21 +30,11 @@ function tabulate(data, columns) {
   return table;
 }
 
-//How to load in data for D3
-// https://www.tutorialsteacher.com/d3js/loading-data-from-file-in-d3js
-
-function main() {
-
-	//document on ready
-
-    // var output = window.pslviz.output;
-    // var data = window.pslviz.data;
-    d3.json("PSLVizData.json", function(data) {
-	    // console.log(d3.keys(data));
+$( document ).ready(function() {
+	d3.json("PSLVizData.json", function(data) {
 		console.log(data["PredictionTruth"])
-	    // data = Object.keys(output).map(function(k) { return {key:k, value:output[k]} })
 	    tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth']);
-    });
-}
+	});
+});
 
-//create an initilize that is passed in data then hand off that data to the proper functions
+//TODO: An overall js file that creates an initilize that is passed in data then hand off that data to the proper functions
