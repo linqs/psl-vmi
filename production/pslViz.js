@@ -1,4 +1,4 @@
-function show_hist(hist_data) {
+function show_hist(hist_data, xVal, yVal) {
 
 
     console.log(hist_data.length);
@@ -7,15 +7,16 @@ function show_hist(hist_data) {
 
     for (var i = 0; i < hist_data.length; i++) {
         var datum = {};
-        datum.label = hist_data[i]["Rule"];
-        datum.value = hist_data[i]["Total Satisfaction"];
+        datum.label = hist_data[i][xVal];
+        datum.value = hist_data[i][yVal];
         data.push(datum);
     }
+    console.log( data )
 
     var margin =  {top: 20, right: 10, bottom: 20, left: 40};
     var marginOverview = {top: 30, right: 10, bottom: 20, left: 40};
     var selectorHeight = 40;
-    var width = 800 - margin.left - margin.right;
+    var width = 1500 - margin.left - margin.right;
     var height = 400 - margin.top - margin.bottom - selectorHeight;
     var heightOverview = 80 - marginOverview.top - marginOverview.bottom;
 
@@ -41,7 +42,7 @@ function show_hist(hist_data) {
 	// var div = d3.select('.psl-viz').append('div');
 	// div.classed("viz-module", true);
 
-    var div = d3.select(".psl-viz").append("div");
+  var div = d3.select(".psl-viz").append("div");
 	div.classed("viz-module", true);
 
 	var svg = div.append("svg")
@@ -192,8 +193,9 @@ function tabulate(data, columns) {
 $( document ).ready(function() {
 	d3.json("PSLVizData.json", function(data) {
 		console.log(data["PredictionTruth"])
-	    tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth']);
-		show_hist(data["SatDis"]);
+	  tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth']);
+		show_hist(data["SatDis"], "Rule", "Total Satisfaction");
+    show_hist(data["RuleCount"], "Rule", "Count");
 	});
 });
 
