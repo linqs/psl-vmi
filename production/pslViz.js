@@ -1,17 +1,34 @@
-function show_hist(hist_data, xVal, yVal) {
-
-
-    console.log(hist_data.length);
+function show_hist(hist_data, xVal, yVal, moduleName) {
 
     var data = [];
 
-    for (var i = 0; i < hist_data.length; i++) {
-        var datum = {};
-        datum.label = hist_data[i][xVal];
-        datum.value = hist_data[i][yVal];
-        data.push(datum);
+    var div = d3.select(".psl-viz").append("div");
+    div.classed("viz-module", true);
+
+    // Add drop down menu to customize y-axis
+    var dropDown = div.append("select")
+                        .attr("id", moduleName + "-drop-down");
+
+    var menu = document.getElementById(moduleName + "-drop-down");
+    var index = 0;
+    for ( var label in hist_data[0] ) {
+      if ( label != xVal ) {
+        var option = document.createElement("option");
+        option.text = label;
+        menu.options.add(option);
+        if ( label == yVal ) {
+          menu.options.selectedIndex = index;
+        }
+        index++;
+      }
     }
-    console.log( data )
+
+    for (var i = 0; i < hist_data.length; i++) {
+      var datum = {};
+      datum.label = hist_data[i][xVal];
+      datum.value = hist_data[i][yVal];
+      data.push(datum);
+    }
 
     var margin =  {top: 20, right: 10, bottom: 20, left: 40};
     var marginOverview = {top: 30, right: 10, bottom: 20, left: 40};
@@ -27,6 +44,8 @@ function show_hist(hist_data, xVal, yVal) {
 
 
     console.log(isScrollDisplayed)
+    // Sort in ascending order
+    data.sort(function (a,b) {return a.value - b.value});
 
     var xscale = d3.scale.ordinal()
                     .domain(data.slice(0,numBars).map(function (d) { return d.label; }))
@@ -42,12 +61,10 @@ function show_hist(hist_data, xVal, yVal) {
 	// var div = d3.select('.psl-viz').append('div');
 	// div.classed("viz-module", true);
 
-  var div = d3.select(".psl-viz").append("div");
-	div.classed("viz-module", true);
 
-	var svg = div.append("svg")
-    						.attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom + selectorHeight);
+	  var svg = div.append("svg")
+    						  .attr("width", width + margin.left + margin.right)
+                  .attr("height", height + margin.top + margin.bottom + selectorHeight);
 
     var diagram = svg.append("g")
     								 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -62,7 +79,7 @@ function show_hist(hist_data, xVal, yVal) {
            .call(yAxis);
 
     var bars = diagram.append("g");
-
+ 
     bars.selectAll("rect")
                 .data(data.slice(0, numBars), function (d) {return d.label; })
                 .enter().append("rect")
@@ -194,8 +211,8 @@ $( document ).ready(function() {
 	d3.json("PSLVizData.json", function(data) {
 		console.log(data["PredictionTruth"])
 	  tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth']);
-		show_hist(data["SatDis"], "Rule", "Total Satisfaction");
-    show_hist(data["RuleCount"], "Rule", "Count");
+		show_hist(data["SatDis"], "Rule", "Total Satisfaction", "SatDis");
+    show_hist(data["RuleCount"], "Rule", "Count", "RuleCount");
 	});
 });
 
