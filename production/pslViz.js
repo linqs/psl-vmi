@@ -1,28 +1,8 @@
-function show_hist(hist_data, xVal, yVal, moduleName) {
+function updateGraph( hist_data, xVal, moduleName, div) {
 
-  var data = [];
-
-  var div = d3.select(".psl-viz").append("div");
-  div.classed("viz-module", true);
-
-  // Add drop down menu to customize y-axis
-  var dropDown = div.append("select")
-                      .attr("id", moduleName + "-drop-down");
-
-  var menu = document.getElementById(moduleName + "-drop-down");
-  var index = 0;
-  for ( var label in hist_data[0] ) {
-    if ( label != xVal ) {
-      var option = document.createElement("option");
-      option.text = label;
-      menu.options.add(option);
-      if ( label == yVal ) {
-        menu.options.selectedIndex = index;
-      }
-      index++;
-    }
-  }
-
+  const yVal = document.getElementById(moduleName + "-drop-down").value;
+  console.log( yVal );
+  data = [];
   for (var i = 0; i < hist_data.length; i++) {
     var datum = {};
     datum.label = hist_data[i][xVal];
@@ -152,7 +132,7 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
 
       rects.attr("x", function (d) { return xscale(d.label); });
 
-    // 	  rects.attr("transform", function(d) { return "translate(" + xscale(d.label) + ",0)"; })
+    //    rects.attr("transform", function(d) { return "translate(" + xscale(d.label) + ",0)"; })
 
       rects.enter().append("rect")
             .attr("class", "bar")
@@ -163,6 +143,35 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
 
       rects.exit().remove();
   };
+}
+
+function show_hist(hist_data, xVal, yVal, moduleName) {
+
+  var data = [];
+
+  var div = d3.select(".psl-viz").append("div");
+  div.classed("viz-module", true);
+
+  // Add drop down menu to customize y-axis
+  var dropDown = div.append("select")
+                      .attr("id", moduleName + "-drop-down");
+
+  var menu = document.getElementById(moduleName + "-drop-down");
+  var index = 0;
+  for ( var label in hist_data[0] ) {
+    if ( label != xVal ) {
+      var option = document.createElement("option");
+      option.text = label;
+      menu.options.add(option);
+      if ( label == yVal ) {
+        menu.options.selectedIndex = index;
+      }
+      index++;
+    }
+  }
+  menu.onchange = updateGraph( hist_data, xVal, moduleName, div );
+  console.log(menu);
+  console.log("Done!");
 }
 
 function tabulate(data, columns) {
