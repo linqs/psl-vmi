@@ -1,7 +1,7 @@
 function updateGraph( hist_data, xVal, moduleName, div) {
 
   const yVal = document.getElementById(moduleName + "-drop-down").value;
-  console.log( yVal );
+  // console.log( yVal );
   data = [];
   for (var i = 0; i < hist_data.length; i++) {
     var datum = {};
@@ -22,7 +22,7 @@ function updateGraph( hist_data, xVal, moduleName, div) {
   var numBars = Math.round(width/barWidth);
   var isScrollDisplayed = barWidth * data.length > width;
 
-  console.log(isScrollDisplayed)
+  // console.log(isScrollDisplayed)
   // Sort in ascending order
   data.sort(function (a,b) {return a.value - b.value});
 
@@ -54,7 +54,7 @@ function updateGraph( hist_data, xVal, moduleName, div) {
           .call(yAxis);
 
   var bars = diagram.append("g");
- 
+
   bars.selectAll("rect")
               .data(data.slice(0, numBars), function (d) {return d.label; })
               .enter().append("rect")
@@ -170,30 +170,57 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
     }
   }
   menu.onchange = updateGraph( hist_data, xVal, moduleName, div );
-  console.log(menu);
-  console.log("Done!");
+  // console.log(menu);
+  // console.log("Done!");
 }
 
-function tabulate(data, columns) {
+function tabulate(data, columns, sortOptions, sortTarget, moduleName) {
+
 	var div = d3.select('.psl-viz').append('div');
 	div.classed("viz-module", true);
 
-	var table = div.append('table');
-	var thead = table.append('thead');
-	var	tbody = table.append('tbody');
+    var dropDown = div.append("select")
+                        .attr("id", moduleName + "-drop-down");
 
-	// append the header row
-	thead.append('tr')
-	      .selectAll('th')
-	      .data(columns).enter()
-	      .append('th')
-	      .text(function (column) { return column; });
+    var menu = document.getElementById(moduleName + "-drop-down");
+
+     for (var i = 0; i < sortOptions.length; i++) {
+         var option = document.createElement("option");
+         option.text = sortOptions[i];
+         menu.options.add(option);
+     }
+
+     menu.onchange = function(d) {
+       // recover the option that has been chosen
+       var selectedOption = d3.select(this).property("value")
+       // run the updateChart function with this selected option
+       update(selectedOption)
+   };
+
+	var table = div.append('table')
+    table.append("thead").append("tr");
+
+    var headers = table.select("tr").selectAll("th")
+                    .data(columns)
+                    .enter()
+                    .append("th")
+                    .text(function(d) { return d; });
 
 	// create a row for each object in the data
-	var rows = tbody.selectAll('tr')
+	var rows = table.selectAll('tr')
                     .data(data)
 	                  .enter()
-	                  .append('tr');
+	                  .append('tr')
+                      .sort(function (a, b) {
+                      if (a.Prediction > b.Prediction) {
+                          return 1;
+                      }
+                      if (a.Prediction < b.Prediction) {
+                          return -1;
+                      }
+                      // a must be equal to b
+                      return 0;
+                  });
 
 	// create a cell in each row for each column
 	var cells = rows.selectAll('td')
@@ -205,13 +232,81 @@ function tabulate(data, columns) {
 	                  .enter()
 	                  .append('td')
 	                  .text(function (d) { return d.value; });
+
+    /**
+    Code below does sorting on clicking headers
+    **/
+    // var clicks = 0;
+    // headers.on("click", function(d) {
+    //     console.log(clicks);
+    //     if (d == columns[1]) {
+    //         if (clicks % 2 == 0) {
+    //             rows.sort(function (a, b) {
+    //                 if (a[columns[1]] > b[columns[1]]) {
+    //                     return -1;
+    //                 }
+    //                 if (a[columns[1]] < b[columns[1]]) {
+    //                     return 1;
+    //                 }
+    //                 // a must be equal to b
+    //                 return 0;
+    //             });
+    //         }
+    //         else {
+    //             rows.sort(function (a, b) {
+    //                 if (a[columns[1]] > b[columns[1]]) {
+    //                     return 1;
+    //                 }
+    //                 if (a[columns[1]] < b[columns[1]]) {
+    //                     return -1;
+    //                 }
+    //                 // a must be equal to b
+    //                 return 0;
+    //             });
+    //         }
+    //     }
+    //     clicks++;
+    // })
+
+    function update(selectedGroup) {
+      // console.log(selectedGroup);
+      rows.sort(function (a, b) {
+              if (a[sortTarget] > b[sortTarget]) {
+                  if (selectedGroup == "Ascending") {
+                    return 1;
+                }
+                  else {
+                      return -1;
+                  }
+              }
+              if (a[sortTarget] < b[sortTarget]) {
+                  if (selectedGroup == "Ascending") {
+                  return -1;
+                }
+                else {
+                    return 1;
+                }
+              }
+              // a must be equal to b
+              return 0;
+          });
+    }
+
+    // d3.select(moduleName + "-drop-down").on("change", function(d) {
+    //   // recover the option that has been chosen
+    //   var selectedOption = d3.select(this).property("value")
+    //   // run the updateChart function with this selected option
+    //   update(selectedOption)
+    // })
+
   return table;
 }
 
 $( document ).ready(function() {
     d3.json("PSLVizData.json", function(data) {
-      console.log(data["PredictionTruth"])
-      tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth']);
+      // console.log(data["PredictionTruth"])
+      tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth'], ["Ascending", "Descending"], "Prediction", "PredictionTruth");
+      tabulate(data["ViolatedGroundRules"], ['Violated Rule', 'Parent Rule', 'Weighted', 'Violation'], ["Ascending", "Descending"], "Violation", "Violation");
       show_hist(data["SatDis"], "Rule", "Total Satisfaction", "SatDis");
       show_hist(data["RuleCount"], "Rule", "Count", "RuleCount");
   });
