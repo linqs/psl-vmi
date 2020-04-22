@@ -30,6 +30,13 @@ function createGraph( hist_data, xVal, yVal, sortOptions, displayOptions, module
 
   function updateSort(selectedGroup) {
     console.log(selectedGroup);
+    // if (selectedGroup == "Descending") {
+    //   data.sort(function (a,b) {return b.value - a.value});
+    // }
+    // else {
+    //   data.sort(function (a,b) {return a.value - b.value});
+    // }
+    // bars.sort(function (a,b) {return b.value - a.value})
   }
 
   function updateDisplay(selectedGroup) {
