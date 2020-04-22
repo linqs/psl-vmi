@@ -1,12 +1,15 @@
-function updateGraph( hist_data, xVal, moduleName, div) {
+function show_hist(hist_data, xVal, yVal, moduleName) {
 
-  const yVal = document.getElementById(moduleName + "-drop-down").value;
-  // console.log( yVal );
-  data = [];
-  for (var i = 0; i < hist_data.length; i++) {
+  var div = d3.select(".psl-viz").append("div");
+  div.classed("viz-module", true);
+
+  var data = [];
+  for (var i = 1; i < hist_data.length+1; i++) {
     var datum = {};
-    datum.label = hist_data[i][xVal];
-    datum.value = hist_data[i][yVal];
+    datum.type = yVal;
+    datum.ruleNo = "Rule " + i;
+    datum.label = hist_data[i-1][xVal];
+    datum.value = hist_data[i-1][yVal];
     data.push(datum);
   }
 
@@ -27,7 +30,7 @@ function updateGraph( hist_data, xVal, moduleName, div) {
   data.sort(function (a,b) {return a.value - b.value});
 
   var xscale = d3.scale.ordinal()
-                  .domain(data.slice(0,numBars).map(function (d) { return d.label; }))
+                  .domain(data.map(function (d) { return d.ruleNo; }))
                   .rangeBands([0, width], .2);
 
   var yscale = d3.scale.linear()
@@ -55,123 +58,29 @@ function updateGraph( hist_data, xVal, moduleName, div) {
 
   var bars = diagram.append("g");
 
+  var showLabelValue = d3.tip()
+      .attr("class", "d3-tip")
+      .html(function(d){
+        return "Rule: " + d.label + "\n" + d.type + ": " + d.value;
+      });
+
+  svg.call(showLabelValue);
+ 
   bars.selectAll("rect")
-              .data(data.slice(0, numBars), function (d) {return d.label; })
+              .data(data, function (d) {return d.ruleNo; })
               .enter().append("rect")
               .attr("class", "bar")
-              .attr("x", function (d) { return xscale(d.label); })
+              .attr("x", function (d) { return xscale(d.ruleNo); })
               .attr("y", function (d) { return yscale(d.value); })
               .attr("width", xscale.rangeBand())
-              .attr("height", function (d) { return height - yscale(d.value); });
-
-  if (isScrollDisplayed)
-  {
-    var xOverview = d3.scale.ordinal()
-                       .domain(data.map(function (d) { return d.label; }))
-                       .rangeBands([0, width], .2);
-    yOverview = d3.scale.linear().range([heightOverview, 0]);
-    yOverview.domain(yscale.domain());
-
-    var subBars = diagram.selectAll('.subBar')
-                          .data(data)
-
-    subBars.enter().append("rect")
-                    .classed('subBar', true)
-                    .attr({
-                        height: function(d) {
-                          return heightOverview - yOverview(d.value);
-                      },
-                        width: function(d) {
-                          return xOverview.rangeBand()
-                      },
-                        x: function(d) {
-                          return xOverview(d.label);
-                      },
-                        y: function(d) {
-                          return height + heightOverview + yOverview(d.value)
-                      }
-                    });
-
-    var displayed = d3.scale.quantize()
-                        .domain([0, width])
-                        .range(d3.range(data.length));
-
-    diagram.append("rect")
-              .attr("transform", "translate(0, " + (height + margin.bottom) + ")")
-              .attr("class", "mover")
-              .attr("x", 0)
-              .attr("y", 0)
-              .attr("height", selectorHeight)
-              .attr("width", Math.round(parseFloat(numBars * width)/data.length))
-              .attr("pointer-events", "all")
-              .attr("cursor", "ew-resize")
-              .call(d3.behavior.drag().on("drag", display));
-  }
-  function display () {
-      var x = parseInt(d3.select(this).attr("x")),
-          nx = x + d3.event.dx,
-          w = parseInt(d3.select(this).attr("width")),
-          f, nf, new_data, rects;
-
-      if ( nx < 0 || nx + w > width ) return;
-
-      d3.select(this).attr("x", nx);
-
-      f = displayed(x);
-      nf = displayed(nx);
-
-      if ( f === nf ) return;
-
-      new_data = data.slice(nf, nf + numBars);
-
-      xscale.domain(new_data.map(function (d) { return d.label; }));
-      diagram.select(".x.axis").call(xAxis);
-
-      rects = bars.selectAll("rect")
-                    .data(new_data, function (d) {return d.label; });
-
-      rects.attr("x", function (d) { return xscale(d.label); });
-
-    //    rects.attr("transform", function(d) { return "translate(" + xscale(d.label) + ",0)"; })
-
-      rects.enter().append("rect")
-            .attr("class", "bar")
-            .attr("x", function (d) { return xscale(d.label); })
-            .attr("y", function (d) { return yscale(d.value); })
-            .attr("width", xscale.rangeBand())
-            .attr("height", function (d) { return height - yscale(d.value); });
-
-      rects.exit().remove();
-  };
-}
-
-function show_hist(hist_data, xVal, yVal, moduleName) {
-
-  var data = [];
-
-  var div = d3.select(".psl-viz").append("div");
-  div.classed("viz-module", true);
-
-  // Add drop down menu to customize y-axis
-  var dropDown = div.append("select")
-                      .attr("id", moduleName + "-drop-down");
-
-  var menu = document.getElementById(moduleName + "-drop-down");
-  var index = 0;
-  for ( var label in hist_data[0] ) {
-    if ( label != xVal ) {
-      var option = document.createElement("option");
-      option.text = label;
-      menu.options.add(option);
-      if ( label == yVal ) {
-        menu.options.selectedIndex = index;
-      }
-      index++;
-    }
-  }
-  menu.onchange = updateGraph( hist_data, xVal, moduleName, div );
-  // console.log(menu);
-  // console.log("Done!");
+              .attr("height", function (d) {
+                const newHeight = height - yscale(d.value);
+                if ( newHeight == 0 )
+                  return 1;
+                return newHeight; 
+              })
+              .on('mouseover', showLabelValue.show)
+              .on('mouseout', showLabelValue.hide) 
 }
 
 function tabulate(data, columns, sortOptions, sortTarget, moduleName) {
@@ -307,6 +216,7 @@ $( document ).ready(function() {
       // console.log(data["PredictionTruth"])
       tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth'], ["Ascending", "Descending"], "Prediction", "PredictionTruth");
       tabulate(data["ViolatedGroundRules"], ['Violated Rule', 'Parent Rule', 'Violation'], ["Ascending", "Descending"], "Violation", "Violation");
+      window.data = data;
       show_hist(data["SatDis"], "Rule", "Total Satisfaction", "SatDis");
       show_hist(data["RuleCount"], "Rule", "Count", "RuleCount");
   });
