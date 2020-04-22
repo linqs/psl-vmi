@@ -306,7 +306,7 @@ $( document ).ready(function() {
     d3.json("PSLVizData.json", function(data) {
       // console.log(data["PredictionTruth"])
       tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth'], ["Ascending", "Descending"], "Prediction", "PredictionTruth");
-      tabulate(data["ViolatedGroundRules"], ['Violated Rule', 'Parent Rule', 'Weighted', 'Violation'], ["Ascending", "Descending"], "Violation", "Violation");
+      tabulate(data["ViolatedGroundRules"], ['Violated Rule', 'Parent Rule', 'Violation'], ["Ascending", "Descending"], "Violation", "Violation");
       show_hist(data["SatDis"], "Rule", "Total Satisfaction", "SatDis");
       show_hist(data["RuleCount"], "Rule", "Count", "RuleCount");
   });
