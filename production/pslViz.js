@@ -57,11 +57,15 @@ function createGraph( hist_data, xVal, yVal, sortOptions, displayOptions, module
   var height = 400 - margin.top - margin.bottom - selectorHeight;
   var heightOverview = 80 - marginOverview.top - marginOverview.bottom;
 
+<<<<<<< HEAD
   var maxLength = d3.max(data.map(function(d){ return d.label.length}))
   var barWidth = maxLength * 7;
   var numBars = Math.round(width/barWidth);
   var isScrollDisplayed = barWidth * data.length > width;
 
+=======
+  // console.log(isScrollDisplayed)
+>>>>>>> master
   // Sort in ascending order
   data.sort(function (a,b) {return a.value - b.value});
 
@@ -97,7 +101,7 @@ function createGraph( hist_data, xVal, yVal, sortOptions, displayOptions, module
   var showLabelValue = d3.tip()
       .attr("class", "d3-tip")
       .html(function(d){
-        return "Rule: " + d.label + "\n" + d.type + ": " + d.value;
+        return "<h4>"+ "Rule: " + d.label + "</h4>" + d.type + ": " + d.value;
       });
 
   svg.call(showLabelValue);
