@@ -296,7 +296,7 @@ $( document ).ready(function() {
 
     var sortOptions = ["Ascending", "Descending"];
     tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth'], sortOptions, "Prediction", "PredictionTruth");
-    tabulate(data["ViolatedGroundRules"], ['Violated Rule', 'Parent Rule', 'Weighted', 'Violation'], sortOptions, "Violation", "Violation");
+    tabulate(data["ViolatedGroundRules"], ['Violated Rule', 'Parent Rule', 'Violation'], sortOptions, "Violation", "Violation");
     var displayOptions = Object.keys(data["SatDis"][0]);
     var index = displayOptions.indexOf("Rule");
     if (index !== -1) displayOptions.splice(index, 1);
