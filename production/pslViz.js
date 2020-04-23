@@ -1,7 +1,97 @@
+function updateBarChart(moduleName, xVal) {
+  
+  const yVal = document.getElementById(moduleName+"-drop-down").value;
+  console.log(yVal);
+  // calling update
+  transformBarChart(window.data[moduleName], xVal, yVal, moduleName);
+}
+
+function transformBarChart(hist_data, xVal, yVal, moduleName) {
+
+  var data = [];
+  for (var i = 1; i < hist_data.length+1; i++) {
+    var datum = {};
+    datum.type = yVal;
+    datum.ruleNo = "Rule " + i;
+    datum.label = hist_data[i-1][xVal];
+    datum.value = hist_data[i-1][yVal];
+    data.push(datum);
+  }
+
+  var margin =  {top: 20, right: 10, bottom: 20, left: 40};
+  var marginOverview = {top: 30, right: 10, bottom: 20, left: 40};
+  var selectorHeight = 40;
+  var width = 1500 - margin.left - margin.right;
+  var height = 400 - margin.top - margin.bottom - selectorHeight;
+  var heightOverview = 80 - marginOverview.top - marginOverview.bottom;
+
+  // Sort in ascending order
+  data.sort(function (a,b) {return a.value - b.value});
+
+  // Redefine the scale for x and y axis
+  var xscale = d3.scale.ordinal()
+                  .domain(data.map(function (d) { return d.ruleNo; }))
+                  .rangeBands([0, width], .2);
+
+  var yscale = d3.scale.linear()
+                  .domain([0, d3.max(data, function (d) { return d.value; })])
+                  .range([height, 0]);
+
+  var newXAxis  = d3.svg.axis().scale(xscale).orient("bottom");
+  var newYAxis  = d3.svg.axis().scale(yscale).orient("left");
+
+  // Update the call function so the new scale is used for the x and y axis
+  d3.select("g.x-axis-" + moduleName)
+      .transition()
+      .duration(1000)
+      .call(newXAxis);
+
+  d3.select("g.y-axis-" + moduleName)
+      .transition()
+      .duration(1000)
+      .call(newYAxis);
+
+  // Update the new the attributes of each bar for the bar chart
+  d3.selectAll("rect.bar-" + moduleName)
+      .data(data)
+      .transition(1000)
+      .attr("x", function (d) { return xscale(d.ruleNo); })
+      .attr("y", function (d) { return yscale(d.value); })
+      .attr("height", function (d) {
+                const newHeight = height - yscale(d.value);
+                if ( newHeight == 0 )
+                  return 1;
+                return newHeight; 
+              });
+}
+
 function show_hist(hist_data, xVal, yVal, moduleName) {
 
   var div = d3.select(".psl-viz").append("div");
   div.classed("viz-module", true);
+
+  var dropDown = div.append("select")
+                      .attr("id", moduleName + "-drop-down");
+
+  var menu = document.getElementById(moduleName + "-drop-down");
+  var index = 0;
+  for (var label in hist_data[0]) {
+    if ( label != xVal ) {
+      var option = document.createElement("option");
+      option.text = label;
+      menu.options.add(option);
+      if ( label == yVal ) {
+        menu.options.selectedIndex = index;
+      }
+    }
+    index++;
+  }
+  console.log( menu.value );
+  if ( menu.options.length > 1 ) {
+    menu.onchange = function() {
+      updateBarChart(moduleName, xVal);
+    };
+  }
 
   var data = [];
   for (var i = 1; i < hist_data.length+1; i++) {
@@ -43,12 +133,12 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
                      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   diagram.append("g")
-          .attr("class", "x axis")
+          .attr("class", "x-axis-" + moduleName)
           .attr("transform", "translate(0, " + height + ")")
           .call(xAxis);
 
   diagram.append("g")
-          .attr("class", "y axis")
+          .attr("class", "y-axis-" + moduleName)
           .call(yAxis);
 
   var bars = diagram.append("g");
@@ -64,7 +154,7 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
   bars.selectAll("rect")
               .data(data, function (d) {return d.ruleNo; })
               .enter().append("rect")
-              .attr("class", "bar")
+              .attr("class", "bar-" + moduleName)
               .attr("x", function (d) { return xscale(d.ruleNo); })
               .attr("y", function (d) { return yscale(d.value); })
               .attr("width", xscale.rangeBand())
@@ -75,7 +165,8 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
                 return newHeight; 
               })
               .on('mouseover', showLabelValue.show)
-              .on('mouseout', showLabelValue.hide) 
+              .on('mouseout', showLabelValue.hide)
+              .style("fill", "steelblue");
 }
 
 function tabulate(data, columns, sortOptions, sortTarget, moduleName) {
@@ -208,9 +299,10 @@ function tabulate(data, columns, sortOptions, sortTarget, moduleName) {
 
 $( document ).ready(function() {
     d3.json("PSLVizData.json", function(data) {
-      // console.log(data["PredictionTruth"])
+      console.log(data);
       tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth'], ["Ascending", "Descending"], "Prediction", "PredictionTruth");
       tabulate(data["ViolatedGroundRules"], ['Violated Rule', 'Parent Rule', 'Violation'], ["Ascending", "Descending"], "Violation", "Violation");
+      console.log(data["ViolatedGroundRules"]);
       window.data = data;
       show_hist(data["SatDis"], "Rule", "Total Satisfaction", "SatDis");
       show_hist(data["RuleCount"], "Rule", "Count", "RuleCount");
