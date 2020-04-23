@@ -1,5 +1,9 @@
+const BAR_CHART_MARGIN =  {top: 20, right: 10, bottom: 20, left: 40};
+
+const BAR_CHART_WIDTH = 1500;
+const BAR_CHART_HEIGHT = 400;
+
 function updateBarChart(moduleName, xVal) {
-  
   const yVal = document.getElementById(moduleName+"-drop-down").value;
   console.log(yVal);
   // calling update
@@ -17,25 +21,22 @@ function transformBarChart(hist_data, xVal, yVal, moduleName) {
     datum.value = hist_data[i-1][yVal];
     data.push(datum);
   }
-
-  var margin =  {top: 20, right: 10, bottom: 20, left: 40};
-  var marginOverview = {top: 30, right: 10, bottom: 20, left: 40};
-  var selectorHeight = 40;
-  var width = 1500 - margin.left - margin.right;
-  var height = 400 - margin.top - margin.bottom - selectorHeight;
-  var heightOverview = 80 - marginOverview.top - marginOverview.bottom;
-
   // Sort in ascending order
   data.sort(function (a,b) {return a.value - b.value});
+
+  const xAxisWidth  = BAR_CHART_WIDTH - BAR_CHART_MARGIN.left - 
+                      BAR_CHART_MARGIN.right;
+  const yAxisHeight = BAR_CHART_HEIGHT - BAR_CHART_MARGIN.top - 
+                      BAR_CHART_MARGIN.bottom;
 
   // Redefine the scale for x and y axis
   var xscale = d3.scale.ordinal()
                   .domain(data.map(function (d) { return d.ruleNo; }))
-                  .rangeBands([0, width], .2);
+                  .rangeBands([0, xAxisWidth], .2);
 
   var yscale = d3.scale.linear()
                   .domain([0, d3.max(data, function (d) { return d.value; })])
-                  .range([height, 0]);
+                  .range([yAxisHeight , 0]);
 
   var newXAxis  = d3.svg.axis().scale(xscale).orient("bottom");
   var newYAxis  = d3.svg.axis().scale(yscale).orient("left");
@@ -58,7 +59,7 @@ function transformBarChart(hist_data, xVal, yVal, moduleName) {
       .attr("x", function (d) { return xscale(d.ruleNo); })
       .attr("y", function (d) { return yscale(d.value); })
       .attr("height", function (d) {
-                const newHeight = height - yscale(d.value);
+                const newHeight = yAxisHeight - yscale(d.value);
                 if ( newHeight == 0 )
                   return 1;
                 return newHeight; 
@@ -103,38 +104,38 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
     data.push(datum);
   }
 
-  var margin =  {top: 20, right: 10, bottom: 20, left: 40};
-  var marginOverview = {top: 30, right: 10, bottom: 20, left: 40};
-  var selectorHeight = 40;
-  var width = 1500 - margin.left - margin.right;
-  var height = 400 - margin.top - margin.bottom - selectorHeight;
-  var heightOverview = 80 - marginOverview.top - marginOverview.bottom;
-
   // console.log(isScrollDisplayed)
   // Sort in ascending order
   data.sort(function (a,b) {return a.value - b.value});
 
+  const xAxisWidth  = BAR_CHART_WIDTH - BAR_CHART_MARGIN.left - 
+                      BAR_CHART_MARGIN.right;
+  const yAxisHeight = BAR_CHART_HEIGHT - BAR_CHART_MARGIN.top - 
+                      BAR_CHART_MARGIN.bottom;
+
   var xscale = d3.scale.ordinal()
                   .domain(data.map(function (d) { return d.ruleNo; }))
-                  .rangeBands([0, width], .2);
+                  .rangeBands([0, xAxisWidth], .2);
 
   var yscale = d3.scale.linear()
                   .domain([0, d3.max(data, function (d) { return d.value; })])
-                  .range([height, 0]);
+                  .range([yAxisHeight, 0]);
 
-  var xAxis  = d3.svg.axis().scale(xscale).orient("bottom");
-  var yAxis  = d3.svg.axis().scale(yscale).orient("left");
+  var xAxis = d3.svg.axis().scale(xscale).orient("bottom");
+  var yAxis = d3.svg.axis().scale(yscale).orient("left");
 
   var svg = div.append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom + selectorHeight);
+                .attr("width", BAR_CHART_WIDTH)
+                .attr("height", BAR_CHART_HEIGHT);
 
+  const svgTranslate = "translate(" + BAR_CHART_MARGIN.left + "," + 
+                        BAR_CHART_MARGIN.top + ")";
   var diagram = svg.append("g")
-                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                     .attr("transform", svgTranslate);
 
   diagram.append("g")
           .attr("class", "x-axis-" + moduleName)
-          .attr("transform", "translate(0, " + height + ")")
+          .attr("transform", "translate(0, " + yAxisHeight + ")")
           .call(xAxis);
 
   diagram.append("g")
@@ -145,7 +146,7 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
 
   var showLabelValue = d3.tip()
       .attr("class", "d3-tip")
-      .html(function(d){
+      .html(function(d) {
         return "<h4>"+ "Rule: " + d.label + "</h4>" + d.type + ": " + d.value;
       });
 
@@ -159,7 +160,7 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
               .attr("y", function (d) { return yscale(d.value); })
               .attr("width", xscale.rangeBand())
               .attr("height", function (d) {
-                const newHeight = height - yscale(d.value);
+                const newHeight = yAxisHeight - yscale(d.value);
                 if ( newHeight == 0 )
                   return 1;
                 return newHeight; 
@@ -174,32 +175,32 @@ function tabulate(data, columns, sortOptions, sortTarget, moduleName) {
 	var div = d3.select('.psl-viz').append('div');
 	div.classed("viz-module", true);
 
-    var dropDown = div.append("select")
-                        .attr("id", moduleName + "-drop-down");
+  var dropDown = div.append("select")
+                      .attr("id", moduleName + "-drop-down");
 
-    var menu = document.getElementById(moduleName + "-drop-down");
+  var menu = document.getElementById(moduleName + "-drop-down");
 
-     for (var i = 0; i < sortOptions.length; i++) {
-         var option = document.createElement("option");
-         option.text = sortOptions[i];
-         menu.options.add(option);
-     }
+  for (var i = 0; i < sortOptions.length; i++) {
+    var option = document.createElement("option");
+    option.text = sortOptions[i];
+    menu.options.add(option);
+  }
 
-     menu.onchange = function(d) {
-       // recover the option that has been chosen
-       var selectedOption = d3.select(this).property("value")
-       // run the updateChart function with this selected option
-       update(selectedOption)
+  menu.onchange = function(d) {
+    // recover the option that has been chosen
+    var selectedOption = d3.select(this).property("value")
+    // run the updateChart function with this selected option
+    update(selectedOption)
    };
 
 	var table = div.append('table')
     table.append("thead").append("tr");
 
-    var headers = table.select("tr").selectAll("th")
-                    .data(columns)
-                    .enter()
-                    .append("th")
-                    .text(function(d) { return d; });
+  var headers = table.select("tr").selectAll("th")
+                      .data(columns)
+                      .enter()
+                      .append("th")
+                      .text(function(d) { return d; });
 
 	// create a row for each object in the data
 	var rows = table.selectAll('tr')
@@ -263,29 +264,29 @@ function tabulate(data, columns, sortOptions, sortTarget, moduleName) {
     //     clicks++;
     // })
 
-    function update(selectedGroup) {
-      // console.log(selectedGroup);
-      rows.sort(function (a, b) {
-              if (a[sortTarget] > b[sortTarget]) {
-                  if (selectedGroup == "Ascending") {
-                    return 1;
-                }
-                  else {
-                      return -1;
-                  }
+  function update(selectedGroup) {
+    // console.log(selectedGroup);
+    rows.sort(function (a, b) {
+            if (a[sortTarget] > b[sortTarget]) {
+                if (selectedGroup == "Ascending") {
+                  return 1;
               }
-              if (a[sortTarget] < b[sortTarget]) {
-                  if (selectedGroup == "Ascending") {
-                  return -1;
-                }
                 else {
-                    return 1;
+                    return -1;
                 }
+            }
+            if (a[sortTarget] < b[sortTarget]) {
+                if (selectedGroup == "Ascending") {
+                return -1;
               }
-              // a must be equal to b
-              return 0;
-          });
-    }
+              else {
+                  return 1;
+              }
+            }
+            // a must be equal to b
+            return 0;
+        });
+  }
 
     // d3.select(moduleName + "-drop-down").on("change", function(d) {
     //   // recover the option that has been chosen
@@ -300,13 +301,23 @@ function tabulate(data, columns, sortOptions, sortTarget, moduleName) {
 $( document ).ready(function() {
     d3.json("PSLVizData.json", function(data) {
       console.log(data);
-      tabulate(data["PredictionTruth"], ['Predicate', 'Prediction','Truth'], ["Ascending", "Descending"], "Prediction", "PredictionTruth");
-      tabulate(data["ViolatedGroundRules"], ['Violated Rule', 'Parent Rule', 'Violation'], ["Ascending", "Descending"], "Violation", "Violation");
-      console.log(data["ViolatedGroundRules"]);
       window.data = data;
+
+      const tableSortOptions = ["Ascending", "Descending"];
+      const PredictionTruthCols = ['Predicate', 'Prediction','Truth'];
+      tabulate(data["PredictionTruth"], PredictionTruthCols, tableSortOptions, 
+               "Prediction", "PredictionTruth");
+
+      const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule', 
+                                       'Violation'];
+      tabulate(data["ViolatedGroundRules"], violatedGroundRulesCols,
+               tableSortOptions, "Violation", "Violation");
+
+      console.log(data["ViolatedGroundRules"]);
       show_hist(data["SatDis"], "Rule", "Total Satisfaction", "SatDis");
       show_hist(data["RuleCount"], "Rule", "Count", "RuleCount");
   });
 });
 
-//TODO: An overall js file that creates an initilize that is passed in data then hand off that data to the proper functions
+//TODO: An overall js file that creates an initilize that is passed in data then
+// hand off that data to the proper functions
