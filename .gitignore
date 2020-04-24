@@ -2,4 +2,4 @@
 *.json
 
 #tablesorter files#
-/tablesorter-master/*
+production/tablesorter-master/*
