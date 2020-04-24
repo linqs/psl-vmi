@@ -94,6 +94,10 @@ function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
     }
     index++;
   }
+  // Remove unnecassary drop down menu
+  if ( menu.options.length < 2 ) {
+    menu.remove();
+  }
 
   var data = [];
   for (var i = 1; i < hist_data.length+1; i++) {
