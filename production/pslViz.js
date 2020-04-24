@@ -50,7 +50,7 @@ function transformBarChart(chart, barData) {
     .data(data)
     .transition()
     .duration(BAR_CHART_TRANSITION_DURATION)
-    .attr("x", function(row) { 
+    .attr("x", function(row) {
       return chart.xScale(row.ruleNo); })
     .attr("width", chart.xScale.rangeBand())
     .attr("y", function(row) { return chart.yScale(row.value); })
@@ -58,11 +58,11 @@ function transformBarChart(chart, barData) {
       const newHeight = chart.innerHeight - chart.yScale(row.value);
       if ( newHeight == 0 )
         return 1;
-      return newHeight; 
+      return newHeight;
     });
 }
 
-function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel, 
+function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
                    chartId) {
 
   var div = d3.select(containerSelector).append("div");
@@ -139,7 +139,7 @@ function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
       .style("text-anchor", "middle")
       .text(yAxisLabel);
 
-  const xAxisLabelTranslation = "translate(" + (innerWidth / 2) + " ," + 
+  const xAxisLabelTranslation = "translate(" + (innerWidth / 2) + " ," +
                                 (innerHeight + BAR_CHART_MARGIN.bottom) + ")";
   // X Axis Label
   svg.append("text")
@@ -185,7 +185,7 @@ function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
         const newHeight = innerHeight - yScale(row.value);
         if ( newHeight == 0 )
           return 1;
-        return newHeight; 
+        return newHeight;
       })
       .on('mouseover', showLabelValue.show)
       .on('mouseout', showLabelValue.hide);
@@ -212,25 +212,9 @@ function tabulate(data, columns, sortOptions, sortTarget, chartId) {
 	var div = d3.select('.psl-viz').append('div');
 	div.classed("viz-module", true);
 
-  var dropDown = div.append("select")
-                      .attr("id", chartId + "-drop-down");
-
-  var menu = document.getElementById(chartId + "-drop-down");
-
-  for (var i = 0; i < sortOptions.length; i++) {
-    var option = document.createElement("option");
-    option.text = sortOptions[i];
-    menu.options.add(option);
-  }
-
-  menu.onchange = function(d) {
-    // recover the option that has been chosen
-    var selectedOption = d3.select(this).property("value")
-    // run the updateChart function with this selected option
-    update(selectedOption)
-   };
-
 	var table = div.append('table')
+    .attr("id", chartId)
+    .attr("class", "tablesorter")
     table.append("thead").append("tr");
 
   var headers = table.select("tr").selectAll("th")
@@ -240,20 +224,10 @@ function tabulate(data, columns, sortOptions, sortTarget, chartId) {
                       .text(function(d) { return d; });
 
 	// create a row for each object in the data
-	var rows = table.selectAll('tr')
+	var rows = table.append("tbody").selectAll('tr')
                     .data(data)
 	                  .enter()
-	                  .append('tr')
-                      .sort(function (a, b) {
-                      if (a.Prediction > b.Prediction) {
-                          return 1;
-                      }
-                      if (a.Prediction < b.Prediction) {
-                          return -1;
-                      }
-                      // a must be equal to b
-                      return 0;
-                  });
+	                  .append('tr');
 
 	// create a cell in each row for each column
 	var cells = rows.selectAll('td')
@@ -266,72 +240,6 @@ function tabulate(data, columns, sortOptions, sortTarget, chartId) {
 	                  .append('td')
 	                  .text(function (d) { return d.value; });
 
-    /**
-    Code below does sorting on clicking headers
-    **/
-    // var clicks = 0;
-    // headers.on("click", function(d) {
-    //     console.log(clicks);
-    //     if (d == columns[1]) {
-    //         if (clicks % 2 == 0) {
-    //             rows.sort(function (a, b) {
-    //                 if (a[columns[1]] > b[columns[1]]) {
-    //                     return -1;
-    //                 }
-    //                 if (a[columns[1]] < b[columns[1]]) {
-    //                     return 1;
-    //                 }
-    //                 // a must be equal to b
-    //                 return 0;
-    //             });
-    //         }
-    //         else {
-    //             rows.sort(function (a, b) {
-    //                 if (a[columns[1]] > b[columns[1]]) {
-    //                     return 1;
-    //                 }
-    //                 if (a[columns[1]] < b[columns[1]]) {
-    //                     return -1;
-    //                 }
-    //                 // a must be equal to b
-    //                 return 0;
-    //             });
-    //         }
-    //     }
-    //     clicks++;
-    // })
-
-  function update(selectedGroup) {
-    // console.log(selectedGroup);
-    rows.sort(function (a, b) {
-            if (a[sortTarget] > b[sortTarget]) {
-                if (selectedGroup == "Ascending") {
-                  return 1;
-              }
-                else {
-                    return -1;
-                }
-            }
-            if (a[sortTarget] < b[sortTarget]) {
-                if (selectedGroup == "Ascending") {
-                return -1;
-              }
-              else {
-                  return 1;
-              }
-            }
-            // a must be equal to b
-            return 0;
-        });
-  }
-
-    // d3.select(chartId + "-drop-down").on("change", function(d) {
-    //   // recover the option that has been chosen
-    //   var selectedOption = d3.select(this).property("value")
-    //   // run the updateChart function with this selected option
-    //   update(selectedOption)
-    // })
-
   return table;
 }
 
@@ -340,18 +248,29 @@ $( document ).ready(function() {
       console.log(data);
       window.data = data;
 
+      const chartIdList = []
       const tableSortOptions = ["Ascending", "Descending"];
-      const PredictionTruthCols = ['Predicate', 'Prediction','Truth'];
-      tabulate(data["PredictionTruth"], PredictionTruthCols, tableSortOptions, 
-               "Prediction", "PredictionTruth");
 
-      const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule', 
-                                       'Violation'];
+      const predictionTruthCols = ['Predicate', 'Prediction','Truth'];
+      var chartId = "PredictionTruth"
+      chartIdList.push(chartId)
+      tabulate(data["PredictionTruth"], predictionTruthCols, tableSortOptions,
+               "Prediction", chartId);
+
+      const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule','Violation'];
+      var chartId = "Violation"
+      chartIdList.push(chartId)
       tabulate(data["ViolatedGroundRules"], violatedGroundRulesCols,
-               tableSortOptions, "Violation", "Violation");
+               tableSortOptions, "Violation", chartId);
+
+      //Make each of our tables a tablesorter instance via their chartId
+      chartIdList.forEach(function(id) {
+        $(`#${id}`).tablesorter();
+        $(`#${id}`).tablesorter();
+      });
 
       console.log(data["ViolatedGroundRules"]);
-      var chart = show_hist(data["SatDis"], ".psl-viz", "Rule", 
+      var chart = show_hist(data["SatDis"], ".psl-viz", "Rule",
                             "Total Satisfaction", "SatDis");
       document.getElementById("SatDis-drop-down").onchange = function () {
         updateBarChart(chart);
