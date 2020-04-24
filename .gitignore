@@ -1,2 +1,5 @@
 #Data Files#
 *.json
+
+#tablesorter files#
+/tablesorter-master/*
