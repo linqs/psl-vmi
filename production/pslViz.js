@@ -1,106 +1,99 @@
-const BAR_CHART_MARGIN =  {top: 20, right: 10, bottom: 20, left: 40};
+const BAR_CHART_MARGIN = {
+      top: 20,
+      right: 10,
+      bottom: 20,
+      left: 40
+    };
 
-const BAR_CHART_WIDTH = 1500;
+const BAR_CHART_COL_WIDTH = 100;
 const BAR_CHART_HEIGHT = 400;
+const BAR_CHART_TRANSITION_DURATION = 1000;
 
-function updateBarChart(moduleName, xVal) {
-  const yVal = document.getElementById(moduleName+"-drop-down").value;
+function updateBarChart(chart) {
+
+  const yVal = document.getElementById(chart.id+"-drop-down").value;
   console.log(yVal);
+
   // calling update
-  transformBarChart(window.data[moduleName], xVal, yVal, moduleName);
+  chart.yAxisLabel = yVal;
+  transformBarChart(chart, window.data[chart.id]);
 }
 
-function transformBarChart(hist_data, xVal, yVal, moduleName) {
+function transformBarChart(chart, barData) {
 
+  console.log(barData);
   var data = [];
-  for (var i = 1; i < hist_data.length+1; i++) {
+  for (var i = 1; i < barData.length+1; i++) {
     var datum = {};
-    datum.type = yVal;
+    datum.type = chart.yAxisLabel;
     datum.ruleNo = "Rule " + i;
-    datum.label = hist_data[i-1][xVal];
-    datum.value = hist_data[i-1][yVal];
+    datum.label = barData[i-1][chart.xAxisLabel];
+    datum.value = barData[i-1][chart.yAxisLabel];
     data.push(datum);
   }
+  // This should soon have a drop down menu for the user to choose how they
+  // want to sort their data
   // Sort in ascending order
   data.sort(function (a,b) {return a.value - b.value});
 
-  const xAxisWidth  = BAR_CHART_WIDTH - BAR_CHART_MARGIN.left - 
-                      BAR_CHART_MARGIN.right;
-  const yAxisHeight = BAR_CHART_HEIGHT - BAR_CHART_MARGIN.top - 
-                      BAR_CHART_MARGIN.bottom;
-
   // Redefine the scale for x and y axis
-  var xscale = d3.scale.ordinal()
-                  .domain(data.map(function (d) { return d.ruleNo; }))
-                  .rangeBands([0, xAxisWidth], .2);
-
-  var yscale = d3.scale.linear()
-                  .domain([0, d3.max(data, function (d) { return d.value; })])
-                  .range([yAxisHeight , 0]);
-
-  var newXAxis  = d3.svg.axis().scale(xscale).orient("bottom");
-  var newYAxis  = d3.svg.axis().scale(yscale).orient("left");
+  chart.xScale.domain(data.map(function (d) { return d.ruleNo; }));
+  chart.yScale.domain([0, d3.max(data, function(row) { return row.value })]);
 
   // Update the call function so the new scale is used for the x and y axis
-  d3.select("g.x-axis-" + moduleName)
-      .transition()
-      .duration(1000)
-      .call(newXAxis);
+  chart.svg.transition().select(".y-axis")
+    .duration(BAR_CHART_TRANSITION_DURATION)
+    .call(chart.yAxis);
 
-  d3.select("g.y-axis-" + moduleName)
-      .transition()
-      .duration(1000)
-      .call(newYAxis);
-
-  // Update the new the attributes of each bar for the bar chart
-  d3.selectAll("rect.bar-" + moduleName)
-      .data(data)
-      .transition(1000)
-      .attr("x", function (d) { return xscale(d.ruleNo); })
-      .attr("y", function (d) { return yscale(d.value); })
-      .attr("height", function (d) {
-                const newHeight = yAxisHeight - yscale(d.value);
-                if ( newHeight == 0 )
-                  return 1;
-                return newHeight; 
-              });
+  // Update the new the attributes of each bar for the bar chart with new data
+  chart.svg.selectAll(".bar")
+    .data(data)
+    .transition()
+    .duration(BAR_CHART_TRANSITION_DURATION)
+    .attr("x", function(row) { 
+      return chart.xScale(row.ruleNo); })
+    .attr("width", chart.xScale.rangeBand())
+    .attr("y", function(row) { return chart.yScale(row.value); })
+    .attr("height", function(row) {
+      const newHeight = chart.innerHeight - chart.yScale(row.value);
+      if ( newHeight == 0 )
+        return 1;
+      return newHeight; 
+    });
 }
 
-function show_hist(hist_data, xVal, yVal, moduleName) {
+function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel, 
+                   chartId) {
 
-  var div = d3.select(".psl-viz").append("div");
+  var div = d3.select(containerSelector).append("div");
   div.classed("viz-module", true);
 
   var dropDown = div.append("select")
-                      .attr("id", moduleName + "-drop-down");
+                      .attr("id", chartId + "-drop-down");
 
-  var menu = document.getElementById(moduleName + "-drop-down");
+  var menu = document.getElementById(chartId + "-drop-down");
   var index = 0;
+  console.log(chartId);
   for (var label in hist_data[0]) {
-    if ( label != xVal ) {
+    if ( label != xAxisLabel ) {
       var option = document.createElement("option");
       option.text = label;
       menu.options.add(option);
-      if ( label == yVal ) {
+      // Default selected y-axis label
+      if ( label == yAxisLabel ) {
         menu.options.selectedIndex = index;
       }
     }
     index++;
   }
-  console.log( menu.value );
-  if ( menu.options.length > 1 ) {
-    menu.onchange = function() {
-      updateBarChart(moduleName, xVal);
-    };
-  }
 
   var data = [];
   for (var i = 1; i < hist_data.length+1; i++) {
     var datum = {};
-    datum.type = yVal;
+    datum.type = yAxisLabel;
     datum.ruleNo = "Rule " + i;
-    datum.label = hist_data[i-1][xVal];
-    datum.value = hist_data[i-1][yVal];
+    datum.label = hist_data[i-1][xAxisLabel];
+    datum.value = hist_data[i-1][yAxisLabel];
     data.push(datum);
   }
 
@@ -108,41 +101,70 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
   // Sort in ascending order
   data.sort(function (a,b) {return a.value - b.value});
 
-  const xAxisWidth  = BAR_CHART_WIDTH - BAR_CHART_MARGIN.left - 
-                      BAR_CHART_MARGIN.right;
-  const yAxisHeight = BAR_CHART_HEIGHT - BAR_CHART_MARGIN.top - 
+  const outterWidth = data.length * BAR_CHART_COL_WIDTH;
+  const outterHeight = BAR_CHART_HEIGHT;
+
+  // The dimensions inside the margins.
+  const innerWidth = outterWidth - BAR_CHART_MARGIN.left -
+                     BAR_CHART_MARGIN.right;
+  const innerHeight = outterHeight - BAR_CHART_MARGIN.top -
                       BAR_CHART_MARGIN.bottom;
 
-  var xscale = d3.scale.ordinal()
+  var xScale = d3.scale.ordinal()
                   .domain(data.map(function (d) { return d.ruleNo; }))
-                  .rangeBands([0, xAxisWidth], .2);
+                  .rangeBands([0, innerWidth], .2);
 
-  var yscale = d3.scale.linear()
+  var yScale = d3.scale.linear()
                   .domain([0, d3.max(data, function (d) { return d.value; })])
-                  .range([yAxisHeight, 0]);
+                  .range([innerHeight, 0]);
 
-  var xAxis = d3.svg.axis().scale(xscale).orient("bottom");
-  var yAxis = d3.svg.axis().scale(yscale).orient("left");
+  var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+  var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
+  const svgTranslation = "translate(" + BAR_CHART_MARGIN.left + "," +
+                         BAR_CHART_MARGIN.top + ")";
   var svg = div.append("svg")
-                .attr("width", BAR_CHART_WIDTH)
-                .attr("height", BAR_CHART_HEIGHT);
+                .attr("id", chartId)
+                .attr("width", outterWidth)
+                .attr("height", outterHeight)
+                .append("g")
+                .attr("transform", svgTranslation);;
 
-  const svgTranslate = "translate(" + BAR_CHART_MARGIN.left + "," + 
-                        BAR_CHART_MARGIN.top + ")";
-  var diagram = svg.append("g")
-                     .attr("transform", svgTranslate);
+  // Y Axis Label
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - (BAR_CHART_MARGIN.left / 1.25))
+      .attr("x", 0 - (innerHeight / 2))
+      .attr("dy", "0.5em")
+      .style("text-anchor", "middle")
+      .text(yAxisLabel);
 
-  diagram.append("g")
-          .attr("class", "x-axis-" + moduleName)
-          .attr("transform", "translate(0, " + yAxisHeight + ")")
-          .call(xAxis);
+  const xAxisLabelTranslation = "translate(" + (innerWidth / 2) + " ," + 
+                                (innerHeight + BAR_CHART_MARGIN.bottom) + ")";
+  // X Axis Label
+  svg.append("text")
+      .attr("transform", xAxisLabelTranslation)
+      .style("text-anchor", "middle")
+      .text(xAxisLabel);
 
-  diagram.append("g")
-          .attr("class", "y-axis-" + moduleName)
-          .call(yAxis);
 
-  var bars = diagram.append("g");
+  // X Axis
+  svg.append("g")
+      .attr("class", "x-axis")
+      .attr("transform", "translate(0," + innerHeight + ")")
+      .call(xAxis)
+      .selectAll("text")
+      .style("text-anchor", "end");
+
+  // Y Axis
+  svg.append("g")
+      .attr("class", "y-axis")
+      .call(yAxis)
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", "1em")
+      .style("text-anchor", "end");
 
   var showLabelValue = d3.tip()
       .attr("class", "d3-tip")
@@ -151,34 +173,49 @@ function show_hist(hist_data, xVal, yVal, moduleName) {
       });
 
   svg.call(showLabelValue);
- 
-  bars.selectAll("rect")
-              .data(data, function (d) {return d.ruleNo; })
-              .enter().append("rect")
-              .attr("class", "bar-" + moduleName)
-              .attr("x", function (d) { return xscale(d.ruleNo); })
-              .attr("y", function (d) { return yscale(d.value); })
-              .attr("width", xscale.rangeBand())
-              .attr("height", function (d) {
-                const newHeight = yAxisHeight - yscale(d.value);
-                if ( newHeight == 0 )
-                  return 1;
-                return newHeight; 
-              })
-              .on('mouseover', showLabelValue.show)
-              .on('mouseout', showLabelValue.hide)
-              .style("fill", "steelblue");
+
+  var bars = svg.selectAll("bar")
+      .data(data)
+      .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(row) { return xScale(row.ruleNo); })
+      .attr("width", xScale.rangeBand())
+      .attr("y", function(row) { return yScale(row.value); })
+      .attr("height", function(row) {
+        const newHeight = innerHeight - yScale(row.value);
+        if ( newHeight == 0 )
+          return 1;
+        return newHeight; 
+      })
+      .on('mouseover', showLabelValue.show)
+      .on('mouseout', showLabelValue.hide);
+  return {
+    'id': chartId,
+    'containerSelector': containerSelector,
+    'svg': svg,
+    'xScale': xScale,
+    'yScale': yScale,
+    'xAxis': xAxis,
+    'yAxis': yAxis,
+    'xAxisLabel': xAxisLabel,
+    'yAxisLabel': yAxisLabel,
+    'bars': bars,
+    'outterWidth': outterWidth,
+    'outterHeight': outterHeight,
+    'innerWidth': innerWidth,
+    'innerHeight': innerHeight,
+  };
 }
 
-function tabulate(data, columns, sortOptions, sortTarget, moduleName) {
+function tabulate(data, columns, sortOptions, sortTarget, chartId) {
 
 	var div = d3.select('.psl-viz').append('div');
 	div.classed("viz-module", true);
 
   var dropDown = div.append("select")
-                      .attr("id", moduleName + "-drop-down");
+                      .attr("id", chartId + "-drop-down");
 
-  var menu = document.getElementById(moduleName + "-drop-down");
+  var menu = document.getElementById(chartId + "-drop-down");
 
   for (var i = 0; i < sortOptions.length; i++) {
     var option = document.createElement("option");
@@ -288,7 +325,7 @@ function tabulate(data, columns, sortOptions, sortTarget, moduleName) {
         });
   }
 
-    // d3.select(moduleName + "-drop-down").on("change", function(d) {
+    // d3.select(chartId + "-drop-down").on("change", function(d) {
     //   // recover the option that has been chosen
     //   var selectedOption = d3.select(this).property("value")
     //   // run the updateChart function with this selected option
@@ -314,8 +351,12 @@ $( document ).ready(function() {
                tableSortOptions, "Violation", "Violation");
 
       console.log(data["ViolatedGroundRules"]);
-      show_hist(data["SatDis"], "Rule", "Total Satisfaction", "SatDis");
-      show_hist(data["RuleCount"], "Rule", "Count", "RuleCount");
+      var chart = show_hist(data["SatDis"], ".psl-viz", "Rule", 
+                            "Total Satisfaction", "SatDis");
+      document.getElementById("SatDis-drop-down").onchange = function () {
+        updateBarChart(chart);
+      }
+      show_hist(data["RuleCount"], ".psl-viz", "Rule", "Count", "RuleCount");
   });
 });
 
