@@ -40,7 +40,16 @@ function transformBarChart(chart, barData) {
   chart.xScale.domain(data.map(function (d) { return d.ruleNo; }));
   chart.yScale.domain([0, d3.max(data, function(row) { return row.value })]);
 
+  // Update the y-axis label
+  chart.svg.transition().select(".y-label")
+    .duration(BAR_CHART_TRANSITION_DURATION)
+    .text(chart.yAxisLabel);
+
   // Update the call function so the new scale is used for the x and y axis
+  chart.svg.transition().select(".x-axis")
+    .duration(BAR_CHART_TRANSITION_DURATION)
+    .call(chart.xAxis);
+
   chart.svg.transition().select(".y-axis")
     .duration(BAR_CHART_TRANSITION_DURATION)
     .call(chart.yAxis);
@@ -50,8 +59,7 @@ function transformBarChart(chart, barData) {
     .data(data)
     .transition()
     .duration(BAR_CHART_TRANSITION_DURATION)
-    .attr("x", function(row) {
-      return chart.xScale(row.ruleNo); })
+    .attr("x", function(row) { return chart.xScale(row.ruleNo); })
     .attr("width", chart.xScale.rangeBand())
     .attr("y", function(row) { return chart.yScale(row.value); })
     .attr("height", function(row) {
@@ -132,6 +140,7 @@ function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
 
   // Y Axis Label
   svg.append("text")
+      .attr("class", "y-label")
       .attr("transform", "rotate(-90)")
       .attr("y", 0 - (BAR_CHART_MARGIN.left / 1.25))
       .attr("x", 0 - (innerHeight / 2))
@@ -143,6 +152,7 @@ function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
                                 (innerHeight + BAR_CHART_MARGIN.bottom) + ")";
   // X Axis Label
   svg.append("text")
+      .attr("class", "x-label")
       .attr("transform", xAxisLabelTranslation)
       .style("text-anchor", "middle")
       .text(xAxisLabel);
@@ -207,13 +217,13 @@ function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
   };
 }
 
-function tabulate(data, columns, sortOptions, sortTarget, chartId) {
+function tabulate(data, columns, sortOptions, sortTarget, tableId) {
 
 	var div = d3.select('.psl-viz').append('div');
 	div.classed("viz-module", true);
 
 	var table = div.append('table')
-    .attr("id", chartId)
+    .attr("id", tableId)
     .attr("class", "tablesorter")
     table.append("thead").append("tr");
 
@@ -248,23 +258,23 @@ $( document ).ready(function() {
       console.log(data);
       window.data = data;
 
-      const chartIdList = []
+      const tableIdList = []
       const tableSortOptions = ["Ascending", "Descending"];
 
       const predictionTruthCols = ['Predicate', 'Prediction','Truth'];
-      var chartId = "PredictionTruth"
-      chartIdList.push(chartId)
+      var tableId = "PredictionTruth";
+      tableIdList.push(tableId)
       tabulate(data["PredictionTruth"], predictionTruthCols, tableSortOptions,
-               "Prediction", chartId);
+               "Prediction", tableId);
 
       const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule','Violation'];
-      var chartId = "Violation"
-      chartIdList.push(chartId)
+      tableId = "Violation";
+      tableIdList.push(tableId)
       tabulate(data["ViolatedGroundRules"], violatedGroundRulesCols,
-               tableSortOptions, "Violation", chartId);
+               tableSortOptions, "Violation", tableId);
 
       //Make each of our tables a tablesorter instance via their chartId
-      chartIdList.forEach(function(id) {
+      tableIdList.forEach(function(id) {
         $(`#${id}`).tablesorter();
         $(`#${id}`).tablesorter();
       });
