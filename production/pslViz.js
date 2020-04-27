@@ -271,10 +271,11 @@ $( document ).ready(function() {
       const predictionTruthCols = ['Predicate', 'Prediction','Truth'];
       var tableId = "PredictionTruth";
       tableIdList.push(tableId)
-      createTable(data["PredictionTruth"], predictionTruthCols, tableSortOptions,
-               "Prediction", tableId);
+      createTable(data["PredictionTruth"], predictionTruthCols,tableSortOptions,
+                  "Prediction", tableId);
 
-      const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule','Violation'];
+      const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule',
+                                       'Violation'];
       tableId = "Violation";
       tableIdList.push(tableId)
       createTable(data["ViolatedGroundRules"], violatedGroundRulesCols,
@@ -288,11 +289,12 @@ $( document ).ready(function() {
 
       console.log(data["ViolatedGroundRules"]);
       var satDisChart = createBarChart(data["SatDis"], ".psl-viz", "Rule",
-                            "Total Satisfaction", "SatDis");
+                                       "Total Satisfaction", "SatDis");
       document.getElementById(satDisChart.menuId).onchange = function () {
         updateBarChart(satDisChart);
       }
-      var ruleCountChart = createBarChart(data["RuleCount"], ".psl-viz", "Rule", "Count", "RuleCount");
+      var ruleCountChart = createBarChart(data["RuleCount"], ".psl-viz", "Rule",
+                                          "Count", "RuleCount");
   });
 });
 
