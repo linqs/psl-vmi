@@ -11,7 +11,7 @@ const BAR_CHART_TRANSITION_DURATION = 1000;
 
 function updateBarChart(chart) {
 
-  const yVal = document.getElementById(chart.id+"-drop-down").value;
+  const yVal = document.getElementById(chart.menuId).value;
   console.log(yVal);
 
   // calling update
@@ -70,19 +70,21 @@ function transformBarChart(chart, barData) {
     });
 }
 
-function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
+function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
                    chartId) {
 
   var div = d3.select(containerSelector).append("div");
   div.classed("viz-module", true);
 
-  var dropDown = div.append("select")
-                      .attr("id", chartId + "-drop-down");
+  var menuId = chartId + "-drop-down";
 
-  var menu = document.getElementById(chartId + "-drop-down");
+  var dropDown = div.append("select")
+                      .attr("id", menuId);
+
+  var menu = document.getElementById(menuId);
   var index = 0;
   console.log(chartId);
-  for (var label in hist_data[0]) {
+  for (var label in chartData[0]) {
     if ( label != xAxisLabel ) {
       var option = document.createElement("option");
       option.text = label;
@@ -100,12 +102,12 @@ function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
   }
 
   var data = [];
-  for (var i = 1; i < hist_data.length+1; i++) {
+  for (var i = 1; i < chartData.length+1; i++) {
     var datum = {};
     datum.type = yAxisLabel;
     datum.ruleNo = "Rule " + i;
-    datum.label = hist_data[i-1][xAxisLabel];
-    datum.value = hist_data[i-1][yAxisLabel];
+    datum.label = chartData[i-1][xAxisLabel];
+    datum.value = chartData[i-1][yAxisLabel];
     data.push(datum);
   }
 
@@ -205,6 +207,7 @@ function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
       .on('mouseout', showLabelValue.hide);
   return {
     'id': chartId,
+    'menuId' : menuId,
     'containerSelector': containerSelector,
     'svg': svg,
     'xScale': xScale,
@@ -221,7 +224,7 @@ function show_hist(hist_data, containerSelector, xAxisLabel, yAxisLabel,
   };
 }
 
-function tabulate(data, columns, sortOptions, sortTarget, tableId) {
+function createTable(data, columns, sortOptions, sortTarget, tableId) {
 
 	var div = d3.select('.psl-viz').append('div');
 	div.classed("viz-module", true);
@@ -268,13 +271,13 @@ $( document ).ready(function() {
       const predictionTruthCols = ['Predicate', 'Prediction','Truth'];
       var tableId = "PredictionTruth";
       tableIdList.push(tableId)
-      tabulate(data["PredictionTruth"], predictionTruthCols, tableSortOptions,
+      createTable(data["PredictionTruth"], predictionTruthCols, tableSortOptions,
                "Prediction", tableId);
 
       const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule','Violation'];
       tableId = "Violation";
       tableIdList.push(tableId)
-      tabulate(data["ViolatedGroundRules"], violatedGroundRulesCols,
+      createTable(data["ViolatedGroundRules"], violatedGroundRulesCols,
                tableSortOptions, "Violation", tableId);
 
       //Make each of our tables a tablesorter instance via their chartId
@@ -284,12 +287,12 @@ $( document ).ready(function() {
       });
 
       console.log(data["ViolatedGroundRules"]);
-      var chart = show_hist(data["SatDis"], ".psl-viz", "Rule",
+      var satDisChart = createBarChart(data["SatDis"], ".psl-viz", "Rule",
                             "Total Satisfaction", "SatDis");
-      document.getElementById("SatDis-drop-down").onchange = function () {
-        updateBarChart(chart);
+      document.getElementById(satDisChart.menuId).onchange = function () {
+        updateBarChart(satDisChart);
       }
-      show_hist(data["RuleCount"], ".psl-viz", "Rule", "Count", "RuleCount");
+      var ruleCountChart = createBarChart(data["RuleCount"], ".psl-viz", "Rule", "Count", "RuleCount");
   });
 });
 
