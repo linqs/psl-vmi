@@ -224,7 +224,7 @@ function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
   };
 }
 
-function createTable(data, columns, sortOptions, sortTarget, tableId) {
+function createTable(data, columns, tableId) {
 
 	var div = d3.select('.psl-viz').append('div');
 	div.classed("viz-module", true);
@@ -260,6 +260,80 @@ function createTable(data, columns, sortOptions, sortTarget, tableId) {
   return table;
 }
 
+//TODO: Better way to grab from JSON then what these functions do??
+function createTruthTable(data, tableIdList) {
+  //Find the correct data
+  var truthObjectList = [];
+  for (key in data["truthMap"]) {
+    var truthObject = {};
+    truthObject.Prediction = data["groundAtoms"][key]["prediction"];
+    truthObject.Truth = data["truthMap"][key];
+    truthObject.Predicate = data["groundAtoms"][key]["string"];
+    truthObjectList.push(truthObject);
+  }
+  //Create table
+  const predictionTruthCols = ['Predicate', 'Prediction','Truth'];
+  var tableId = "PredictionTruth";
+  tableIdList.push(tableId)
+  createTable(truthObjectList, predictionTruthCols, tableId);
+}
+
+function createViolationTable(data, tableIdList) {
+  //Find the correct data
+  var rulesObject = data["rules"];
+  var groundRulesObject = data["groundRules"];
+  var violationObjectList = [];
+  for (ruleID in rulesObject) {
+    if (rulesObject[ruleID]["weighted"] == false){
+      for (groundRuleID in groundRulesObject){
+        if (groundRulesObject[groundRuleID]["ruleID"] == ruleID) {
+          if (groundRulesObject[groundRuleID]["disatisfaction"] > 0){
+            var violationObject = {};
+            violationObject.ViolatedRule = "Implement creating ground rules";
+            violationObject.ParentRule = rulesObject[ruleID]["string"];
+            violationObject.Violation = groundRulesObject[groundRuleID]["disatisfaction"];
+            violationObjectList.push(violationObject);
+          }
+        }
+      }
+    }
+  }
+  //Create table
+  const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule', 'Violation'];
+  var tableId = "Violation";
+  tableIdList.push(tableId)
+  createTable(violationObjectList, violatedGroundRulesCols, tableId);
+}
+
+//TODO: Will have to implement something like this for transformBarChart
+// function createDissatisfactionChart(data){
+//   var rulesObject = data["rules"];
+//   var groundRulesObject = data["groundRules"];
+//   var disObjectList = [];
+//   for (ruleID in rulesObject){
+//     var disObject = {};
+//     var totalSat = 0;
+//     var totalDis = 0;
+//     for (groundRuleID in groundRulesObject){
+//       if (groundRulesObject[groundRuleID]["ruleID"] == ruleID){
+//         totalDis += groundRulesObject[groundRuleID]["disatisfaction"];
+//         totalSat += 1 - groundRulesObject[groundRuleID]["disatisfaction"];
+//       }
+//     }
+//     disObject.TotalDissatisfaction = totalDis;
+//     disObject.TotalSatisfaction = totalSat;
+//     // disObject.DissatisfactionPercentage
+//     // disObject.SatisfactionPercentage
+//     disObject.Rule = rulesObject[ruleID]["text"];
+//     disObjectList.push(disObject)
+//   }
+//   console.log(disObjectList);
+//
+//   return createBarChart(disObjectList, ".psl-viz", "Rule",
+//                                    "TotalSatisfaction", "SatDis");
+// }
+
+
 $( document ).ready(function() {
     d3.json("PSLVizData.json", function(data) {
       console.log(data);
@@ -276,31 +350,16 @@ $( document ).ready(function() {
         }
       }
 
-      print(data);
-
       const tableIdList = []
-      const tableSortOptions = ["Ascending", "Descending"];
-
-      const predictionTruthCols = ['Predicate', 'Prediction','Truth'];
-      var tableId = "PredictionTruth";
-      tableIdList.push(tableId)
-      createTable(data["PredictionTruth"], predictionTruthCols,tableSortOptions,
-                  "Prediction", tableId);
-
-      const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule',
-                                       'Violation'];
-      tableId = "Violation";
-      tableIdList.push(tableId)
-      createTable(data["ViolatedGroundRules"], violatedGroundRulesCols,
-               tableSortOptions, "Violation", tableId);
+      createTruthTable(data, tableIdList);
+      createViolationTable(data, tableIdList);
 
       //Make each of our tables a tablesorter instance via their chartId
       tableIdList.forEach(function(id) {
         $(`#${id}`).tablesorter();
-        $(`#${id}`).tablesorter();
       });
 
-      console.log(data["ViolatedGroundRules"]);
+      // var satDisChart = createDissatisfactionChart(data);
       var satDisChart = createBarChart(data["SatDis"], ".psl-viz", "Rule",
                                        "Total Satisfaction", "SatDis");
       document.getElementById(satDisChart.menuId).onchange = function () {
