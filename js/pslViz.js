@@ -217,7 +217,6 @@ function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
 }
 
 function createTable(data, columns, tableId) {
-
 	var div = d3.select('.psl-viz').append('div');
 	div.classed("viz-module", true);
 
@@ -258,8 +257,8 @@ function createTruthTable(data, tableIdList) {
     var truthObjectList = [];
     for (key in data["truthMap"]) {
         var truthObject = {};
-        truthObject.Prediction = data["groundAtoms"][key]["prediction"];
-        truthObject.Truth = data["truthMap"][key];
+        truthObject.Prediction = data["groundAtoms"][key]["prediction"].toFixed(2);
+        truthObject.Truth = data["truthMap"][key].toFixed(2);
         truthObject.Predicate = data["groundAtoms"][key]["text"];
         truthObjectList.push(truthObject);
     }
