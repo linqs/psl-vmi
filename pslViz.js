@@ -396,7 +396,8 @@ function updateGroundAtomContext(data, menuId) {
         oldMenu.remove();
     }
 
-    const groundAtomYLabelMenuId = createMenu(SATISFACTION_Y_LABELS, DEF_SATISFACTION_Y_LABEL, GROUND_ATOM_SATISFACTION_MODULE, DIV_NAME);
+    const groundAtomYLabelMenuId = createMenu(SATISFACTION_Y_LABELS,
+        DEF_SATISFACTION_Y_LABEL, GROUND_ATOM_SATISFACTION_MODULE, DIV_NAME);
     const groundAtomChart = createBarChart(groundAtomSatData, DIV_NAME,
         DEF_BAR_CHART_X_LABEL, DEF_SATISFACTION_Y_LABEL,
         GROUND_ATOM_SATISFACTION_MODULE);
