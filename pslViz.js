@@ -441,7 +441,7 @@ $( document ).ready(function() {
         console.log(data);
 
         // Convert all ObjectID keys into ints
-        var numKeys = d3.keys(data).lengths
+        var numKeys = d3.keys(data).length
         for (var i = 0; i < numKeys; i++) {
             var key = d3.keys(data)[i];
             if (!isNaN(key)) {
