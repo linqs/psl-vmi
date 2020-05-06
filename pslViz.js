@@ -9,6 +9,24 @@ const BAR_CHART_COL_WIDTH = 100;
 const BAR_CHART_HEIGHT = 400;
 const BAR_CHART_TRANSITION_DURATION = 1000;
 
+const NONE = null;
+
+const DIV_NAME = ".psl-viz";
+
+const GROUND_ATOM_CONTEXT_MODULE = "GroundAtom";
+const GROUND_ATOM_SATISFACTION_MODULE = "GroundAtomSatisfaction"
+const RULE_COUNT_MODULE = "RuleCount";
+const RULE_COUNT_Y_LABEL = "Count";
+const RULE_SATISFACTION_MODULE = "SatDis"
+const DEF_BAR_CHART_X_LABEL = "Rule";
+const DEF_SATISFACTION_Y_LABEL = "Total Satisfaction";
+const SATISFACTION_Y_LABELS = [
+    {"text": "Total Satisfaction",        "value": "Total Satisfaction"},
+    {"text": "Satisfaction Percentage",   "value": "Satisfaction Percentage"},
+    {"text": "Total Disatisfaction",      "value": "Total Disatisfaction"},
+    {"text": "Disatisfaction Percentage", "value": "Disatisfaction Percentage"}
+];
+
 function updateBarChart(chart, data, menuId) {
     const yVal = document.getElementById(menuId).value;
     console.log(yVal);
@@ -106,7 +124,9 @@ function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
     const svgTranslation = "translate(" + BAR_CHART_MARGIN.left + "," +
         BAR_CHART_MARGIN.top + ")";
 
-    var div = d3.select(containerSelector).append("div");
+    const divId = chartId + "-div";
+    var div = d3.select(containerSelector).append("div")
+        .attr("id", divId);
     div.classed("viz-module", true);
 
     var svg = div.append("svg")
@@ -179,6 +199,7 @@ function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
         .on('mouseout', showLabelValue.hide);
     return {
         'id': chartId,
+        'divId': divId,
         'containerSelector': containerSelector,
         'svg': svg,
         'xScale': xScale,
@@ -279,7 +300,23 @@ function createViolationTable(data, tableIdList) {
     createTable(violationObjectList, violatedGroundRulesCols, tableId);
 }
 
-function computeSatisfactionData(data) {
+function exists(container, item) {
+    var i = container.length;
+    while ( i >= 0 ) {
+        if ( item == container[i] ) {
+            return true;
+        }
+        i--;
+    }
+    return false;
+}
+
+// Compute the satisfaction statistics for each ground rule, the aggregated
+// statistics will be associated with the parent rule of each ground rule.
+// If the function is given a Ground Atom, then the function only computes the
+// aggregated statistics for each ground rule that contains the given ground
+// atom.
+function computeSatisfactionData(data, groundAtom) {
     const rules = data["rules"];
     const groundRules = data["groundRules"];
     var totalGroundRules = 0;
@@ -288,18 +325,32 @@ function computeSatisfactionData(data) {
         var totSat = 0;
         var totDis = 0;
         var ruleData = {};
+        var groundRuleCount = 0;
         for ( groundRule in groundRules ) {
             if ( groundRules[groundRule]["ruleID"] == rule ) {
-                totSat += 1 - groundRules[groundRule]["disatisfaction"];
-                totDis += groundRules[groundRule]["disatisfaction"];
+                if ( groundAtom == NONE ) {
+                    totSat += 1 - groundRules[groundRule]["disatisfaction"];
+                    totDis += groundRules[groundRule]["disatisfaction"];
+                    groundRuleCount++;
+                }
+                else {
+                    const groundAtoms = groundRules[groundRule]["groundAtoms"];
+                    if ( exists(groundAtoms, groundAtom) ) {
+                        totSat += 1 - groundRules[groundRule]["disatisfaction"];
+                        totDis += groundRules[groundRule]["disatisfaction"];
+                        groundRuleCount++;
+                    }
+                }
             }
         }
+        satPercentage = (groundRuleCount != 0 ? (totSat/groundRuleCount):(0));
+        disSatPercentage =(groundRuleCount != 0 ? (totDis/groundRuleCount):(0));
         ruleData = {
             "Rule": rules[rule]["text"],
             "Total Satisfaction": totSat,
-            "Satisfaction Percentage": totSat / rules[rule]["count"],
+            "Satisfaction Percentage": satPercentage,
             "Total Disatisfaction": totDis,
-            "Disatisfaction Percentage": totDis / rules[rule]["count"]
+            "Disatisfaction Percentage": disSatPercentage
         };
         satisfactionData.push(ruleData);
     }
@@ -319,6 +370,51 @@ function readRuleCountData(data) {
     return ruleCountData;
 }
 
+function getGroundAtomOptions(data) {
+    const groundAtoms = data["groundAtoms"];
+    groundAtomOptions = [];
+    for ( groundAtom in groundAtoms ) {
+        var option = {
+            "text": groundAtoms[groundAtom]["text"],
+            "value": groundAtom
+        };
+        groundAtomOptions.push(option);
+    }
+    return groundAtomOptions;
+}
+
+function updateGroundAtomContext(data, menuId) {
+    const groundAtom = parseInt(document.getElementById(menuId).value);
+    const groundAtomSatData = computeSatisfactionData(data, groundAtom);
+
+    const oldChart = document.getElementById(window.groundAtomChart);
+    const oldMenu = document.getElementById(window.groundAtomYLabelMenuId);
+    if ( oldChart != NONE ) {
+        oldChart.remove();
+    }
+    if ( oldMenu != NONE ) {
+        oldMenu.remove();
+    }
+
+    const groundAtomYLabelMenuId = createMenu(SATISFACTION_Y_LABELS, DEF_SATISFACTION_Y_LABEL, GROUND_ATOM_SATISFACTION_MODULE, DIV_NAME);
+    const groundAtomChart = createBarChart(groundAtomSatData, DIV_NAME,
+        DEF_BAR_CHART_X_LABEL, DEF_SATISFACTION_Y_LABEL,
+        GROUND_ATOM_SATISFACTION_MODULE);
+    // Keep track of the Y-label menu and the ground atom chart so as the user
+    // selects a new ground atom we delete the old bar chart and menu
+    //
+    // TODO: Investigate if we can observe this same task by using the old menu
+    // to update with the newly constructed bar chart. The same menu is being
+    // created everytime, how do we implement it so that the menu is created
+    // once and the bar chart can change?
+    window.groundAtomYLabelMenuId = groundAtomYLabelMenuId;
+    window.groundAtomChart = groundAtomChart.divId;
+    document.getElementById(groundAtomYLabelMenuId).onchange = function() {
+        updateBarChart(groundAtomChart, groundAtomSatData,
+            groundAtomYLabelMenuId);
+    };
+}
+
 function createMenu(options, defaultValue, moduleName, containerSelector) {
     const menuId = moduleName + "-menu";
     d3.select(containerSelector).append("select")
@@ -328,9 +424,10 @@ function createMenu(options, defaultValue, moduleName, containerSelector) {
     var index = 0;
     while ( index < options.length ) {
         var menuOption = document.createElement("option");
-        menuOption.text = options[index];
+        menuOption.text = options[index].text;
+        menuOption.value = options[index].value;
         menu.options.add(menuOption);
-        if ( options[index] == defaultValue ) {
+        if ( defaultValue != NONE && options[index] == defaultValue ) {
             menu.options.selectedIndex = index;
         }
         index++;
@@ -338,22 +435,12 @@ function createMenu(options, defaultValue, moduleName, containerSelector) {
     return menuId;
 }
 
-function createMenuOptions( data, excludedLabel ) {
-    var options = [];
-    for ( label in data ) {
-        if ( label != excludedLabel ) {
-            options.push(label);
-        }
-    }
-    return options;
-}
-
 $( document ).ready(function() {
     d3.json("PSLVizData.json", function(data) {
         console.log(data);
 
         // Convert all ObjectID keys into ints
-        var numKeys = d3.keys(data).length
+        var numKeys = d3.keys(data).lengths
         for (var i = 0; i < numKeys; i++) {
             var key = d3.keys(data)[i];
             if (!isNaN(key)) {
@@ -373,21 +460,29 @@ $( document ).ready(function() {
         });
 
         // Satisfaction Module
-        var satData = computeSatisfactionData(data);
+        var satData = computeSatisfactionData(data, NONE);
         console.log(satData);
-        const options = createMenuOptions(satData[0], "Rule");
-        const menuId = createMenu(options, "Total Satisfaction", "SatDis",
-            ".psl-viz");
-        var satDisChart = createBarChart(satData, ".psl-viz", "Rule",
-            "Total Satisfaction", "SatDis");
+        const menuId = createMenu(SATISFACTION_Y_LABELS ,
+            DEF_SATISFACTION_Y_LABEL, RULE_SATISFACTION_MODULE, DIV_NAME);
+        var satDisChart = createBarChart(satData, DIV_NAME,
+            DEF_BAR_CHART_X_LABEL, DEF_SATISFACTION_Y_LABEL,
+            RULE_SATISFACTION_MODULE);
         document.getElementById(menuId).onchange = function () {
             updateBarChart(satDisChart, satData, menuId);
         }
 
         // Rule Count Module
         const ruleCountData = readRuleCountData(data);
-        var ruleCountChart = createBarChart(ruleCountData, ".psl-viz", "Rule",
-            "Count", "RuleCount");
+        var ruleCountChart = createBarChart(ruleCountData, DIV_NAME,
+            DEF_BAR_CHART_X_LABEL, RULE_COUNT_Y_LABEL, RULE_COUNT_MODULE);
+
+        // Ground Atom Context
+        const groundAtomOptions = getGroundAtomOptions(data);
+        const groundAtomMenuId = createMenu(groundAtomOptions, NONE,
+            GROUND_ATOM_CONTEXT_MODULE, DIV_NAME);
+        document.getElementById(groundAtomMenuId).onchange = function() {
+            updateGroundAtomContext(data, groundAtomMenuId);
+        }
     });
 });
 
