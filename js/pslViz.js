@@ -1,8 +1,8 @@
 const BAR_CHART_MARGIN = {
     top: 20,
     right: 10,
-    bottom: 20,
-    left: 40
+    bottom: 50,
+    left: 80
 };
 
 const BAR_CHART_COL_WIDTH = 100;
@@ -177,12 +177,14 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
         .attr("y", function(row) { return yScale(row.value); })
         .attr("height", function(row) {
             const newHeight = innerHeight - yScale(row.value);
-            if ( newHeight == 0 )
+            if (newHeight == 0) {
                 return 1;
+            }
             return newHeight;
         })
         .on('mouseover', showLabelValue.show)
         .on('mouseout', showLabelValue.hide);
+
     return {
         'id': chartId,
         'svg': svg,
@@ -200,16 +202,22 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
     };
 }
 
-function createTable(data, columns, tableId) {
+function createTable(data, columns, title) {
 	var div = d3.select('.psl-viz').append('div');
 	div.classed("viz-module", true);
 
-	var table = div.append('table')
-    .attr("id", tableId)
+    let titleDiv = div.append('div');
+    titleDiv.attr('class', 'title');
+    titleDiv.text(title);
+
+    let tableDiv = div.append('div');
+    tableDiv.classed('table-container', true);
+
+	var table = tableDiv.append('table')
     .attr("class", "tablesorter")
     table.append("thead").append("tr");
 
-  var headers = table.select("tr").selectAll("th")
+    var headers = table.select("tr").selectAll("th")
                       .data(columns)
                       .enter()
                       .append("th")
@@ -236,7 +244,7 @@ function createTable(data, columns, tableId) {
 }
 
 // TODO: Better way to grab from JSON then what these functions do??
-function createTruthTable(data, tableIdList) {
+function createTruthTable(data) {
     // Find the correct data
     var truthObjectList = [];
     for (key in data["truthMap"]) {
@@ -248,12 +256,10 @@ function createTruthTable(data, tableIdList) {
     }
     // Create table
     const predictionTruthCols = ['Predicate', 'Prediction','Truth'];
-    var tableId = "PredictionTruth";
-    tableIdList.push(tableId)
-    createTable(truthObjectList, predictionTruthCols, tableId);
+    createTable(truthObjectList, predictionTruthCols, 'Truth Table');
 }
 
-function createViolationTable(data, tableIdList) {
+function createViolationTable(data) {
     // Find the correct data
     var rulesObject = data["rules"];
     var groundRulesObject = data["groundRules"];
@@ -278,9 +284,7 @@ function createViolationTable(data, tableIdList) {
     // Create table
     const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule',
         'Violation'];
-    var tableId = "Violation";
-    tableIdList.push(tableId)
-    createTable(violationObjectList, violatedGroundRulesCols, tableId);
+    createTable(violationObjectList, violatedGroundRulesCols, 'Violated Constraints');
 }
 
 function exists(container, item) {
@@ -426,63 +430,61 @@ function createMenu(options, defaultValue, moduleName, div) {
     return menuId;
 }
 
-$( document ).ready(function() {
-    d3.json("PSLVizData.json", function(data) {
-        console.log(data);
+function init(data) {
+    console.log(data);
 
-        // Convert all ObjectID keys into ints
-        var numKeys = d3.keys(data).length
-        for (var i = 0; i < numKeys; i++) {
-            var key = d3.keys(data)[i];
-            if (!isNaN(key)) {
-                var data_copy = data[key];
-                data[parseInt(key)] = data_copy;
-                delete data[key];
-            }
+    // Convert all ObjectID keys into ints
+    var numKeys = d3.keys(data).length
+    for (var i = 0; i < numKeys; i++) {
+        var key = d3.keys(data)[i];
+        if (!isNaN(key)) {
+            var data_copy = data[key];
+            data[parseInt(key)] = data_copy;
+            delete data[key];
         }
+    }
 
-        const tableIdList = []
-        createTruthTable(data, tableIdList);
-        createViolationTable(data, tableIdList);
+    createTruthTable(data);
+    createViolationTable(data);
 
-        // Make each of our tables a tablesorter instance via their chartId
-        tableIdList.forEach(function(id) {
-            $(`#${id}`).tablesorter();
-        });
+    // Make each of our tables a tablesorter instance.
+    $(`.viz-module table.tablesorter`).tablesorter();
 
-        // Satisfaction Module
-        var satData = computeSatisfactionData(data, NONE);
-        console.log(satData);
-        var satDiv = d3.select(DIV_NAME).append("div");
-            satDiv.classed(DIV_CLASS, true);
-        const menuId = createMenu(SATISFACTION_Y_LABELS ,
-            DEF_SATISFACTION_Y_LABEL, RULE_SATISFACTION_MODULE, satDiv);
-        var satDisChart = createBarChart(satData, satDiv,
-            DEF_BAR_CHART_X_LABEL, DEF_SATISFACTION_Y_LABEL,
-            RULE_SATISFACTION_MODULE);
-        document.getElementsByClassName(menuId)[0].onchange = function () {
-            updateBarChart(satDisChart, satData, menuId);
-        }
+    // Satisfaction Module
+    var satData = computeSatisfactionData(data, NONE);
+    console.log(satData);
+    var satDiv = d3.select(DIV_NAME).append("div");
+        satDiv.classed(DIV_CLASS, true);
+    const menuId = createMenu(SATISFACTION_Y_LABELS ,
+        DEF_SATISFACTION_Y_LABEL, RULE_SATISFACTION_MODULE, satDiv);
+    var satDisChart = createBarChart(satData, satDiv,
+        DEF_BAR_CHART_X_LABEL, DEF_SATISFACTION_Y_LABEL,
+        RULE_SATISFACTION_MODULE);
+    document.getElementsByClassName(menuId)[0].onchange = function () {
+        updateBarChart(satDisChart, satData, menuId);
+    }
 
-        // Rule Count Module
-        const ruleCountData = readRuleCountData(data);
-        var ruleCountDiv = d3.select(DIV_NAME).append("div");
-            ruleCountDiv.classed(DIV_CLASS, true);
-        var ruleCountChart = createBarChart(ruleCountData, ruleCountDiv,
-            DEF_BAR_CHART_X_LABEL, RULE_COUNT_Y_LABEL, RULE_COUNT_MODULE);
+    // Rule Count Module
+    const ruleCountData = readRuleCountData(data);
+    var ruleCountDiv = d3.select(DIV_NAME).append("div");
+        ruleCountDiv.classed(DIV_CLASS, true);
+    var ruleCountChart = createBarChart(ruleCountData, ruleCountDiv,
+        DEF_BAR_CHART_X_LABEL, RULE_COUNT_Y_LABEL, RULE_COUNT_MODULE);
 
-        // Ground Atom Context
-        const groundAtomOptions = getGroundAtomOptions(data);
-        var groundAtomDiv = d3.select(DIV_NAME).append("div");
-            groundAtomDiv.classed(DIV_CLASS, true);
-        const groundAtomMenuId = createMenu(groundAtomOptions, NONE,
-            GROUND_ATOM_CONTEXT_MODULE, groundAtomDiv);
-        var groundAtomMenu = document.getElementsByClassName(groundAtomMenuId);
-        groundAtomMenu[0].onchange = function() {
-            updateGroundAtomContext(data, groundAtomMenuId, groundAtomDiv);
-        };
-    }); 
+    // Ground Atom Context
+    const groundAtomOptions = getGroundAtomOptions(data);
+    var groundAtomDiv = d3.select(DIV_NAME).append("div");
+        groundAtomDiv.classed(DIV_CLASS, true);
+    const groundAtomMenuId = createMenu(groundAtomOptions, NONE,
+        GROUND_ATOM_CONTEXT_MODULE, groundAtomDiv);
+    var groundAtomMenu = document.getElementsByClassName(groundAtomMenuId);
+    groundAtomMenu[0].onchange = function() {
+        updateGroundAtomContext(data, groundAtomMenuId, groundAtomDiv);
+    };
+    groundAtomMenu[0].options.selectedIndex = 0;
+    groundAtomMenu[0].onchange();
+}
+
+$(document).ready(function() {
+    init(window.pslviz.data);
 });
-
-//TODO: An overall js file that creates an initilize that is passed in data then
-// hand off that data to the proper functions
