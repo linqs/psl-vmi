@@ -226,19 +226,20 @@ function createTable(data, columns, title) {
 	// create a row for each object in the data
 	var rows = table.append("tbody").selectAll('tr')
                     .data(data)
-	                  .enter()
-	                  .append('tr');
+                    .enter()
+                    .append('tr')
+                    .attr('data-atom', function(atom) { return atom.id; });
 
 	// create a cell in each row for each column
 	var cells = rows.selectAll('td')
 	                  .data(function (row) {
 	                    return columns.map(function (column) {
-	                      return {column: column, value: row[column]};
+	                      return {column: column, value: row[column], id: row['id']};
 	                    });
 	                  })
 	                  .enter()
 	                  .append('td')
-	                  .text(function (d) { return d.value; });
+	                  .text(function(row) { return row.value; });
 
   return table;
 }
@@ -248,10 +249,12 @@ function createTruthTable(data) {
     // Find the correct data
     var truthObjectList = [];
     for (key in data["truthMap"]) {
-        var truthObject = {};
-        truthObject.Prediction = data["groundAtoms"][key]["prediction"].toFixed(2);
-        truthObject.Truth = data["truthMap"][key].toFixed(2);
-        truthObject.Predicate = data["groundAtoms"][key]["text"];
+        var truthObject = {
+            "Prediction": data["groundAtoms"][key]["prediction"].toFixed(2),
+            "Truth": data["truthMap"][key].toFixed(2),
+            "Predicate": data["groundAtoms"][key]["text"],
+            "id": key,
+        }
         truthObjectList.push(truthObject);
     }
     // Create table
@@ -483,6 +486,11 @@ function init(data) {
     };
     groundAtomMenu[0].options.selectedIndex = 0;
     groundAtomMenu[0].onchange();
+
+    // Set context handlers.
+    $('*[data-atom]').click(function() {
+        console.log("Selected context atom: " + this.dataset.atom);
+    });
 }
 
 $(document).ready(function() {
