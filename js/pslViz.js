@@ -12,23 +12,24 @@ const BAR_CHART_TRANSITION_DURATION = 1000;
 const NONE = null;
 
 const DIV_NAME = ".psl-viz";
+const DIV_CLASS = "viz-module";
 
 const GROUND_ATOM_CONTEXT_MODULE = "GroundAtom";
 const GROUND_ATOM_SATISFACTION_MODULE = "GroundAtomSatisfaction"
 const RULE_COUNT_MODULE = "RuleCount";
 const RULE_COUNT_Y_LABEL = "Count";
-const RULE_SATISFACTION_MODULE = "SatDis"
+const RULE_SATISFACTION_MODULE = "SatDis";
 const DEF_BAR_CHART_X_LABEL = "Rule";
 const DEF_SATISFACTION_Y_LABEL = "Total Satisfaction";
 const SATISFACTION_Y_LABELS = [
-    {"text": "Total Satisfaction",        "value": "Total Satisfaction"},
-    {"text": "Satisfaction Percentage",   "value": "Satisfaction Percentage"},
-    {"text": "Total Disatisfaction",      "value": "Total Disatisfaction"},
-    {"text": "Disatisfaction Percentage", "value": "Disatisfaction Percentage"}
+    {"text": "Total Satisfaction",   "value": "Total Satisfaction"},
+    {"text": "Mean Satisfaction",    "value": "Mean Satisfaction"},
+    {"text": "Total Disatisfaction", "value": "Total Disatisfaction"},
+    {"text": "Mean Disatisfaction",  "value": "Mean Disatisfaction"}
 ];
 
 function updateBarChart(chart, data, menuId) {
-    const yVal = document.getElementById(menuId).value;
+    const yVal = document.getElementsByClassName(menuId)[0].value;
     console.log(yVal);
 
     // calling update
@@ -47,13 +48,8 @@ function transformBarChart(chart, barData) {
         datum.value = barData[i-1][chart.yAxisLabel];
         data.push(datum);
     }
-    // This should soon have a drop down menu for the user to choose how they
-    // want to sort their data
-    // Sort in ascending order
-    data.sort(function (a,b) {return a.value - b.value});
 
-    // Redefine the scale for x and y axis
-    chart.xScale.domain(data.map(function (d) { return d.ruleNo; }));
+    // Redefine the scale for y axis
     chart.yScale.domain([0, d3.max(data, function(row) { return row.value })]);
 
     // Update the y-axis label
@@ -62,9 +58,6 @@ function transformBarChart(chart, barData) {
         .text(chart.yAxisLabel);
 
     // Update the call function so the new scale is used for the x and y axis
-    chart.svg.transition().select(".x-axis")
-        .duration(BAR_CHART_TRANSITION_DURATION)
-        .call(chart.xAxis);
 
     chart.svg.transition().select(".y-axis")
         .duration(BAR_CHART_TRANSITION_DURATION)
@@ -86,7 +79,7 @@ function transformBarChart(chart, barData) {
         });
 }
 
-function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
+function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
                         chartId) {
     var data = [];
     for (var i = 1; i < chartData.length+1; i++) {
@@ -97,9 +90,6 @@ function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
         datum.value = chartData[i-1][yAxisLabel];
         data.push(datum);
     }
-
-    // Sort in ascending order
-    data.sort(function (a,b) {return a.value - b.value});
 
     const outterWidth = data.length * BAR_CHART_COL_WIDTH;
     const outterHeight = BAR_CHART_HEIGHT;
@@ -124,20 +114,16 @@ function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
     const svgTranslation = "translate(" + BAR_CHART_MARGIN.left + "," +
         BAR_CHART_MARGIN.top + ")";
 
-    const divId = chartId + "-div";
-    var div = d3.select(containerSelector).append("div")
-        .attr("id", divId);
-    div.classed("viz-module", true);
-
     var svg = div.append("svg")
-        .attr("id", chartId)
         .attr("width", outterWidth)
-        .attr("height", outterHeight)
-        .append("g")
-        .attr("transform", svgTranslation);;
+        .attr("height", outterHeight);
+    svg.classed(chartId, true);
+
+    var svgTransformed = svg.append("g")
+        .attr("transform", svgTranslation);
 
     // Y Axis Label
-    svg.append("text")
+    svgTransformed.append("text")
         .attr("class", "y-label")
         .attr("transform", "rotate(-90)")
         .attr("y", 0 - (BAR_CHART_MARGIN.left / 1.25))
@@ -149,14 +135,14 @@ function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
     // X Axis Label
     const xAxisLabelTranslation = "translate(" + (innerWidth / 2) + " ," +
         (innerHeight + BAR_CHART_MARGIN.bottom) + ")";
-    svg.append("text")
+    svgTransformed.append("text")
         .attr("class", "x-label")
         .attr("transform", xAxisLabelTranslation)
         .style("text-anchor", "middle")
         .text(xAxisLabel);
 
     // X Axis
-    svg.append("g")
+    svgTransformed.append("g")
         .attr("class", "x-axis")
         .attr("transform", "translate(0," + innerHeight + ")")
         .call(xAxis)
@@ -164,7 +150,7 @@ function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
         .style("text-anchor", "end");
 
     // Y Axis
-    svg.append("g")
+    svgTransformed.append("g")
         .attr("class", "y-axis")
         .call(yAxis)
         .append("text")
@@ -182,7 +168,7 @@ function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
 
     svg.call(showLabelValue);
 
-    var bars = svg.selectAll("bar")
+    var bars = svgTransformed.selectAll("bar")
         .data(data)
         .enter().append("rect")
         .attr("class", "bar")
@@ -199,8 +185,6 @@ function createBarChart(chartData, containerSelector, xAxisLabel, yAxisLabel,
         .on('mouseout', showLabelValue.hide);
     return {
         'id': chartId,
-        'divId': divId,
-        'containerSelector': containerSelector,
         'svg': svg,
         'xScale': xScale,
         'yScale': yScale,
@@ -326,7 +310,8 @@ function computeSatisfactionData(data, groundAtom) {
         var ruleData = {};
         var groundRuleCount = 0;
         for ( groundRule in groundRules ) {
-            if ( groundRules[groundRule]["ruleID"] == rule ) {
+            if ( groundRules[groundRule]["ruleID"] == rule &&
+                 rules[rule]["weighted"] ) {
                 if ( groundAtom == NONE ) {
                     totSat += 1 - groundRules[groundRule]["disatisfaction"];
                     totDis += groundRules[groundRule]["disatisfaction"];
@@ -342,16 +327,18 @@ function computeSatisfactionData(data, groundAtom) {
                 }
             }
         }
-        satPercentage = (groundRuleCount != 0 ? (totSat/groundRuleCount):(0));
-        disSatPercentage =(groundRuleCount != 0 ? (totDis/groundRuleCount):(0));
-        ruleData = {
-            "Rule": rules[rule]["text"],
-            "Total Satisfaction": totSat,
-            "Satisfaction Percentage": satPercentage,
-            "Total Disatisfaction": totDis,
-            "Disatisfaction Percentage": disSatPercentage
-        };
-        satisfactionData.push(ruleData);
+        if ( rules[rule]["weighted"] ) {
+            satMean = (groundRuleCount != 0 ? (totSat/groundRuleCount):(0));
+            disSatMean = (groundRuleCount != 0 ? (totDis/groundRuleCount):(0));
+            ruleData = {
+                "Rule": rules[rule]["text"],
+                "Total Satisfaction": totSat,
+                "Mean Satisfaction": satMean,
+                "Total Disatisfaction": totDis,
+                "Mean Disatisfaction": disSatMean
+            };
+            satisfactionData.push(ruleData);
+        }
     }
     return satisfactionData;
 }
@@ -382,22 +369,25 @@ function getGroundAtomOptions(data) {
     return groundAtomOptions;
 }
 
-function updateGroundAtomContext(data, menuId) {
-    const groundAtom = parseInt(document.getElementById(menuId).value);
+function updateGroundAtomContext(data, menuId, div) {
+    var menu = document.getElementsByClassName(menuId)[0];
+    const groundAtom = parseInt(menu.value);
     const groundAtomSatData = computeSatisfactionData(data, groundAtom);
 
-    const oldChart = document.getElementById(window.groundAtomChart);
-    const oldMenu = document.getElementById(window.groundAtomYLabelMenuId);
-    if ( oldChart != NONE ) {
-        oldChart.remove();
+    const oldChart = document.getElementsByClassName(window.groundAtomChart);
+    const oldMenu = document.getElementsByClassName(window.groundAtomYLabelMenuId);
+    if ( oldChart.length != 0 ) {
+        console.log("Chart removed");
+        oldChart[0].remove();
     }
-    if ( oldMenu != NONE ) {
-        oldMenu.remove();
+    if ( oldMenu.length != 0 ) {
+        console.log("Menu removed");
+        oldMenu[0].remove();
     }
 
     const groundAtomYLabelMenuId = createMenu(SATISFACTION_Y_LABELS,
-        DEF_SATISFACTION_Y_LABEL, GROUND_ATOM_SATISFACTION_MODULE, DIV_NAME);
-    const groundAtomChart = createBarChart(groundAtomSatData, DIV_NAME,
+        DEF_SATISFACTION_Y_LABEL, GROUND_ATOM_SATISFACTION_MODULE, div);
+    const groundAtomChart = createBarChart(groundAtomSatData, div,
         DEF_BAR_CHART_X_LABEL, DEF_SATISFACTION_Y_LABEL,
         GROUND_ATOM_SATISFACTION_MODULE);
     // Keep track of the Y-label menu and the ground atom chart so as the user
@@ -408,19 +398,20 @@ function updateGroundAtomContext(data, menuId) {
     // created everytime, how do we implement it so that the menu is created
     // once and the bar chart can change?
     window.groundAtomYLabelMenuId = groundAtomYLabelMenuId;
-    window.groundAtomChart = groundAtomChart.divId;
-    document.getElementById(groundAtomYLabelMenuId).onchange = function() {
+    window.groundAtomChart = groundAtomChart.id;
+    var menu = document.getElementsByClassName(groundAtomYLabelMenuId)[0];
+    menu.onchange = function() {
         updateBarChart(groundAtomChart, groundAtomSatData,
             groundAtomYLabelMenuId);
     };
 }
 
-function createMenu(options, defaultValue, moduleName, containerSelector) {
+function createMenu(options, defaultValue, moduleName, div) {
     const menuId = moduleName + "-menu";
-    d3.select(containerSelector).append("select")
-        .attr("id", menuId);
+    var select = div.append("select");
+    select.classed(menuId, true);
 
-    var menu = document.getElementById(menuId);
+    var menu = document.getElementsByClassName(menuId)[0];
     var index = 0;
     while ( index < options.length ) {
         var menuOption = document.createElement("option");
@@ -462,28 +453,35 @@ $( document ).ready(function() {
         // Satisfaction Module
         var satData = computeSatisfactionData(data, NONE);
         console.log(satData);
+        var satDiv = d3.select(DIV_NAME).append("div");
+            satDiv.classed(DIV_CLASS, true);
         const menuId = createMenu(SATISFACTION_Y_LABELS ,
-            DEF_SATISFACTION_Y_LABEL, RULE_SATISFACTION_MODULE, DIV_NAME);
-        var satDisChart = createBarChart(satData, DIV_NAME,
+            DEF_SATISFACTION_Y_LABEL, RULE_SATISFACTION_MODULE, satDiv);
+        var satDisChart = createBarChart(satData, satDiv,
             DEF_BAR_CHART_X_LABEL, DEF_SATISFACTION_Y_LABEL,
             RULE_SATISFACTION_MODULE);
-        document.getElementById(menuId).onchange = function () {
+        document.getElementsByClassName(menuId)[0].onchange = function () {
             updateBarChart(satDisChart, satData, menuId);
         }
 
         // Rule Count Module
         const ruleCountData = readRuleCountData(data);
-        var ruleCountChart = createBarChart(ruleCountData, DIV_NAME,
+        var ruleCountDiv = d3.select(DIV_NAME).append("div");
+            ruleCountDiv.classed(DIV_CLASS, true);
+        var ruleCountChart = createBarChart(ruleCountData, ruleCountDiv,
             DEF_BAR_CHART_X_LABEL, RULE_COUNT_Y_LABEL, RULE_COUNT_MODULE);
 
         // Ground Atom Context
         const groundAtomOptions = getGroundAtomOptions(data);
+        var groundAtomDiv = d3.select(DIV_NAME).append("div");
+            groundAtomDiv.classed(DIV_CLASS, true);
         const groundAtomMenuId = createMenu(groundAtomOptions, NONE,
-            GROUND_ATOM_CONTEXT_MODULE, DIV_NAME);
-        document.getElementById(groundAtomMenuId).onchange = function() {
-            updateGroundAtomContext(data, groundAtomMenuId);
-        }
-    });
+            GROUND_ATOM_CONTEXT_MODULE, groundAtomDiv);
+        var groundAtomMenu = document.getElementsByClassName(groundAtomMenuId);
+        groundAtomMenu[0].onchange = function() {
+            updateGroundAtomContext(data, groundAtomMenuId, groundAtomDiv);
+        };
+    }); 
 });
 
 //TODO: An overall js file that creates an initilize that is passed in data then
