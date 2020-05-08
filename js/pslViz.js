@@ -38,12 +38,11 @@ function updateBarChart(chart, data, menuId) {
 }
 
 function transformBarChart(chart, barData) {
-    console.log(barData);
     var data = [];
     for (var i = 1; i < barData.length+1; i++) {
         var datum = {};
         datum.type = chart.yAxisLabel;
-        datum.ruleNo = "Rule " + i;
+        datum.ruleNo = barData[i-1]["Identifier"];
         datum.label = barData[i-1][chart.xAxisLabel];
         datum.value = barData[i-1][chart.yAxisLabel];
         data.push(datum);
@@ -85,7 +84,7 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
     for (var i = 1; i < chartData.length+1; i++) {
         var datum = {};
         datum.type = yAxisLabel;
-        datum.ruleNo = "Rule " + i;
+        datum.ruleNo = chartData[i-1]["Identifier"];
         datum.label = chartData[i-1][xAxisLabel];
         datum.value = chartData[i-1][yAxisLabel];
         data.push(datum);
@@ -279,20 +278,27 @@ function createViolationTable(data) {
     createTable(violationObjectList, violatedGroundRulesCols, 'Violated Constraints');
 }
 
+//Create a table that gives an overview for all rules
 function createRuleOverviewTable(data) {
-    var satData = computeSatisfactionData(data, null);
-    var identifier = 1;
-    satData.forEach(function (element) {
-        element["Total Satisfaction"] = element["Total Satisfaction"].toFixed(2);
-        element["Mean Satisfaction"] = element["Mean Satisfaction"].toFixed(2);
-        element["Total Disatisfaction"] = element["Total Disatisfaction"].toFixed(2);
-        element["Mean Disatisfaction"] = element["Mean Disatisfaction"].toFixed(2);
-        element.Identifier = identifier;
-        identifier++;
-    });
-    const overviewCols = ["Rule", "Identifier", "Total Satisfaction",
+    //Bring Sat/Dis data to 2nd decimal place and gather all rule data
+    var overviewData = [];
+    for (var i = 0; i < data.length; i++) {
+        var rule = data[i];
+        var ruleData = {
+            "Rule" : rule["Rule"],
+            "Identifier" : rule["Identifier"],
+            "Weighted" : rule["Weighted"],
+            "Count" : rule["Count"],
+            "Total Satisfaction": rule["Total Satisfaction"].toFixed(2),
+            "Mean Satisfaction": rule["Mean Satisfaction"].toFixed(2),
+            "Total Disatisfaction": rule["Total Disatisfaction"].toFixed(2),
+            "Mean Disatisfaction": rule["Mean Disatisfaction"].toFixed(2)
+        }
+        overviewData.push(ruleData);
+    }
+    const overviewCols = ["Rule", "Identifier", "Weighted", "Count" , "Total Satisfaction",
                         "Mean Satisfaction", "Total Disatisfaction", "Mean Disatisfaction"];
-    createTable(satData, overviewCols, "Rule Overview");
+    createTable(overviewData, overviewCols, "Rule Overview");
 }
 
 function exists(container, item) {
@@ -306,24 +312,24 @@ function exists(container, item) {
     return false;
 }
 
-// Compute the satisfaction statistics for each ground rule, the aggregated
+// Compute the rule statistics for each ground rule, the aggregated
 // statistics will be associated with the parent rule of each ground rule.
 // If the function is given a Ground Atom, then the function only computes the
 // aggregated statistics for each ground rule that contains the given ground
 // atom.
-function computeSatisfactionData(data, groundAtom) {
+function computeRuleData(data, groundAtom) {
     const rules = data["rules"];
     const groundRules = data["groundRules"];
     var totalGroundRules = 0;
     var satisfactionData = [];
+    var ruleIdentifier = 1;
     for ( rule in rules ) {
         var totSat = 0;
         var totDis = 0;
         var ruleData = {};
         var groundRuleCount = 0;
         for ( groundRule in groundRules ) {
-            if ( groundRules[groundRule]["ruleID"] == rule &&
-                 rules[rule]["weighted"] ) {
+            if ( groundRules[groundRule]["ruleID"] == rule ) {
                 if ( groundAtom == NONE ) {
                     totSat += 1 - groundRules[groundRule]["disatisfaction"];
                     totDis += groundRules[groundRule]["disatisfaction"];
@@ -339,29 +345,53 @@ function computeSatisfactionData(data, groundAtom) {
                 }
             }
         }
-        if ( rules[rule]["weighted"] ) {
-            satMean = (groundRuleCount != 0 ? (totSat/groundRuleCount):(0));
-            disSatMean = (groundRuleCount != 0 ? (totDis/groundRuleCount):(0));
-            ruleData = {
-                "Rule": rules[rule]["text"],
-                "Total Satisfaction": totSat,
-                "Mean Satisfaction": satMean,
-                "Total Disatisfaction": totDis,
-                "Mean Disatisfaction": disSatMean
-            };
-            satisfactionData.push(ruleData);
-        }
+        satMean = (groundRuleCount != 0 ? (totSat/groundRuleCount):(0));
+        disSatMean = (groundRuleCount != 0 ? (totDis/groundRuleCount):(0));
+        ruleData = {
+            "Rule": rules[rule]["text"],
+            "Identifier" : ruleIdentifier,
+            "Weighted" : rules[rule]["weighted"],
+            "Count" : rules[rule]["count"],
+            "Total Satisfaction": totSat,
+            "Mean Satisfaction": satMean,
+            "Total Disatisfaction": totDis,
+            "Mean Disatisfaction": disSatMean
+        };
+        ruleIdentifier++;
+        satisfactionData.push(ruleData);
     }
     return satisfactionData;
 }
 
+// Get the rule data needed for the Satisfaction module
+function readSatisfactionData(data) {
+    var ruleSatData = [];
+    for (var i = 0; i < data.length; i++) {
+        var rule = data[i];
+        if (rule["Weighted"] == true) {
+            var ruleData = {
+                "Rule" : rule["Rule"],
+                "Identifier" : rule["Identifier"],
+                "Total Satisfaction": rule["Total Satisfaction"],
+                "Mean Satisfaction": rule["Mean Satisfaction"],
+                "Total Disatisfaction": rule["Total Disatisfaction"],
+                "Mean Disatisfaction": rule["Mean Disatisfaction"]
+            }
+            ruleSatData.push(ruleData);
+        }
+    }
+    return ruleSatData;
+}
+
+// Get the rule data needed for the rule count module
 function readRuleCountData(data) {
-    const rules = data["rules"];
     var ruleCountData = [];
-    for ( rule in rules ) {
+    for (var i = 0; i < data.length; i++) {
+        var rule = data[i];
         var ruleData = {
-            "Rule": rules[rule]["text"],
-            "Count": rules[rule]["count"]
+            "Rule": rule["Rule"],
+            "Count": rule["Count"],
+            "Identifier" : rule["Identifier"]
         }
         ruleCountData.push(ruleData);
     }
@@ -384,7 +414,7 @@ function getGroundAtomOptions(data) {
 function updateGroundAtomContext(data, menuId, div) {
     var menu = document.getElementsByClassName(menuId)[0];
     const groundAtom = parseInt(menu.value);
-    const groundAtomSatData = computeSatisfactionData(data, groundAtom);
+    const groundAtomSatData = computeRuleData(data, groundAtom);
 
     const oldChart = document.getElementsByClassName(window.groundAtomChart);
     const oldMenu = document.getElementsByClassName(window.groundAtomYLabelMenuId);
@@ -452,15 +482,18 @@ function init(data) {
         }
     }
 
+    //Compute all needed rule data and put into one object;
+    var overallRuleData = computeRuleData(data, NONE);
+
     createTruthTable(data);
     createViolationTable(data);
-    createRuleOverviewTable(data);
+    createRuleOverviewTable(overallRuleData);
 
     // Make each of our tables a tablesorter instance.
     $(`.viz-module table.tablesorter`).tablesorter();
 
     // Satisfaction Module
-    var satData = computeSatisfactionData(data, NONE);
+    var satData = readSatisfactionData(overallRuleData);
     var satDiv = d3.select(DIV_NAME).append("div");
         satDiv.classed(DIV_CLASS, true);
     const menuId = createMenu(SATISFACTION_Y_LABELS ,
@@ -473,7 +506,7 @@ function init(data) {
     }
 
     // Rule Count Module
-    const ruleCountData = readRuleCountData(data);
+    const ruleCountData = readRuleCountData(overallRuleData);
     var ruleCountDiv = d3.select(DIV_NAME).append("div");
         ruleCountDiv.classed(DIV_CLASS, true);
     var ruleCountChart = createBarChart(ruleCountData, ruleCountDiv,
