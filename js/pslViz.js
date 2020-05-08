@@ -273,9 +273,9 @@ function createViolationTable(data) {
                 if (groundRulesObject[groundRuleID]["ruleID"] == ruleID) {
                     if (groundRulesObject[groundRuleID]["disatisfaction"] > 0) {
                         var violationObject = {
-                            "ViolatedRule": "Implement creating ground rules",
-                            "ParentRule": rulesObject[ruleID]["text"],
-                            "Violation": 
+                            //TODO: Constraints seem to never be in groundRules
+                            "Violated Constraint": "",
+                            "Dissatisfaction":
                                 groundRulesObject[groundRuleID]["disatisfaction"]
                         };
                         violationObjectList.push(violationObject);
@@ -285,8 +285,7 @@ function createViolationTable(data) {
         }
     }
     // Create table
-    const violatedGroundRulesCols = ['Violated Rule', 'Parent Rule',
-        'Violation'];
+    const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
     createTable(violationObjectList, violatedGroundRulesCols, 'Violated Constraints');
 }
 
