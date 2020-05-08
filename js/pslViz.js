@@ -159,15 +159,6 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
         .attr("dy", "1em")
         .style("text-anchor", "end");
 
-    var showLabelValue = d3.tip()
-        .attr("class", "d3-tip")
-        .html(function(d) {
-            return "<h4>"+ "Rule: " + d.label + "</h4>" + d.type + ": " +
-                d.value;
-        });
-
-    svg.call(showLabelValue);
-
     var bars = svgTransformed.selectAll("bar")
         .data(data)
         .enter().append("rect")
@@ -182,8 +173,6 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
             }
             return newHeight;
         })
-        .on('mouseover', showLabelValue.show)
-        .on('mouseout', showLabelValue.hide);
 
     return {
         'id': chartId,
@@ -288,6 +277,22 @@ function createViolationTable(data) {
     // Create table
     const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
     createTable(violationObjectList, violatedGroundRulesCols, 'Violated Constraints');
+}
+
+function createRuleOverviewTable(data) {
+    var satData = computeSatisfactionData(data, null);
+    var identifier = 1;
+    satData.forEach(function (element) {
+        element["Total Satisfaction"] = element["Total Satisfaction"].toFixed(2);
+        element["Mean Satisfaction"] = element["Mean Satisfaction"].toFixed(2);
+        element["Total Disatisfaction"] = element["Total Disatisfaction"].toFixed(2);
+        element["Mean Disatisfaction"] = element["Mean Disatisfaction"].toFixed(2);
+        element.Identifier = identifier;
+        identifier++;
+    });
+    const overviewCols = ["Rule", "Identifier", "Total Satisfaction",
+                        "Mean Satisfaction", "Total Disatisfaction", "Mean Disatisfaction"];
+    createTable(satData, overviewCols, "Rule Overview");
 }
 
 function exists(container, item) {
@@ -449,13 +454,13 @@ function init(data) {
 
     createTruthTable(data);
     createViolationTable(data);
+    createRuleOverviewTable(data);
 
     // Make each of our tables a tablesorter instance.
     $(`.viz-module table.tablesorter`).tablesorter();
 
     // Satisfaction Module
     var satData = computeSatisfactionData(data, NONE);
-    console.log(satData);
     var satDiv = d3.select(DIV_NAME).append("div");
         satDiv.classed(DIV_CLASS, true);
     const menuId = createMenu(SATISFACTION_Y_LABELS ,
