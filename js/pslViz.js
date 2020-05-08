@@ -253,12 +253,13 @@ function createTruthTable(data) {
             "Prediction": data["groundAtoms"][key]["prediction"].toFixed(2),
             "Truth": data["truthMap"][key].toFixed(2),
             "Predicate": data["groundAtoms"][key]["text"],
+            "Difference" : Math.abs(data["truthMap"][key] - data["groundAtoms"][key]["prediction"]).toFixed(2),
             "id": key,
         }
         truthObjectList.push(truthObject);
     }
     // Create table
-    const predictionTruthCols = ['Predicate', 'Prediction','Truth'];
+    const predictionTruthCols = ['Predicate', 'Prediction','Truth', 'Difference'];
     createTable(truthObjectList, predictionTruthCols, 'Truth Table');
 }
 
