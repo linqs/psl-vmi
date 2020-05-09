@@ -279,7 +279,8 @@ function createViolationTable(data) {
     }
     // Create table
     const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
-    createTable(violationObjectList, violatedGroundRulesCols, 'Violated Constraints');
+    createTable(violationObjectList, violatedGroundRulesCols, 
+        'Violated Constraints');
 }
 
 //Create a table that gives an overview for all rules
@@ -298,14 +299,8 @@ function createRuleOverviewTable(data) {
         }
         overviewData.push(ruleData);
     }
-<<<<<<< HEAD
-    const overviewCols = ["Rule", "Identifier", "Weighted", "Count" , 
-        "Total Satisfaction", "Mean Satisfaction", "Total Disatisfaction",
-        "Mean Disatisfaction"];
-=======
-    const overviewCols = ["ID", "Rule", "Weighted", "Count" ,
-                        "Total Disatisfaction", "Mean Disatisfaction"];
->>>>>>> 9650251c121964bc523715d453d2c469f1e70f96
+    const overviewCols = ["ID", "Rule", "Weighted", "Count",
+        "Total Disatisfaction", "Mean Disatisfaction"];
     createTable(overviewData, overviewCols, "Rule Overview");
 }
 
