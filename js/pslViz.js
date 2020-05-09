@@ -416,19 +416,16 @@ function getGroundAtomOptions(data) {
 
 function updateGroundAtomContext(data, groundAtomString, div) {
     const groundAtom = parseInt(groundAtomString);
-    let groundAtomSatData = computeRuleData(data, groundAtom);
-    console.log(groundAtomSatData);
-    groundAtomSatData = readSatisfactionData(groundAtomSatData);
+    let SatData = computeRuleData(data, groundAtom);
+    let groundAtomSatData = readSatisfactionData(SatData);
     console.log(groundAtomSatData);
 
     const oldChart = document.getElementsByClassName(window.groundAtomChart);
     const oldMenu = document.getElementsByClassName(window.groundAtomYLabelMenuId);
     if ( oldChart.length != 0 ) {
-        console.log("Chart removed");
         oldChart[0].remove();
     }
     if ( oldMenu.length != 0 ) {
-        console.log("Menu removed");
         oldMenu[0].remove();
     }
 
@@ -527,16 +524,6 @@ function init(data) {
     // Ground Atom Context
     var groundAtomDiv = d3.select(DIV_NAME).append("div");
     groundAtomDiv.classed(DIV_CLASS, true);
-    const groundAtomOptions = getGroundAtomOptions(data);
-    const groundAtomMenuId = createMenu(groundAtomOptions, undefined,
-        GROUND_ATOM_CONTEXT_MODULE, groundAtomDiv);
-    var groundAtomMenu = document.getElementsByClassName(groundAtomMenuId);
-    groundAtomMenu[0].onchange = function() {
-        const groundAtomString = groundAtomMenu[0].value;
-        updateGroundAtomContext(data, groundAtomString, groundAtomDiv);
-    };
-    groundAtomMenu[0].options.selectedIndex = 0;
-    groundAtomMenu[0].onchange();
 
     // Set context handlers.
     $('*[data-atom]').click(function() {
