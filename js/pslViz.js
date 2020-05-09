@@ -9,8 +9,6 @@ const BAR_CHART_COL_WIDTH = 100;
 const BAR_CHART_HEIGHT = 400;
 const BAR_CHART_TRANSITION_DURATION = 1000;
 
-const NONE = null;
-
 const DIV_NAME = ".psl-viz";
 const DIV_CLASS = "viz-module";
 
@@ -79,7 +77,7 @@ function transformBarChart(chart, barData) {
 }
 
 function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
-                        chartId) {
+        chartId) {
     var data = [];
     for (var i = 1; i < chartData.length+1; i++) {
         var datum = {};
@@ -206,28 +204,32 @@ function createTable(data, columns, title) {
     table.append("thead").append("tr");
 
     var headers = table.select("tr").selectAll("th")
-                      .data(columns)
-                      .enter()
-                      .append("th")
-                      .text(function(d) { return d; });
+        .data(columns)
+        .enter()
+        .append("th")
+        .text(function(d) { return d; });
 
 	// create a row for each object in the data
 	var rows = table.append("tbody").selectAll('tr')
-                    .data(data)
-                    .enter()
-                    .append('tr')
-                    .attr('data-atom', function(atom) { return atom.id; });
+        .data(data)
+        .enter()
+        .append('tr')
+        .attr('data-atom', function(atom) { return atom.id; });
 
 	// create a cell in each row for each column
 	var cells = rows.selectAll('td')
-	                  .data(function (row) {
-	                    return columns.map(function (column) {
-	                      return {column: column, value: row[column], id: row['id']};
-	                    });
-	                  })
-	                  .enter()
-	                  .append('td')
-	                  .text(function(row) { return row.value; });
+        .data(function (row) {
+            return columns.map(function (column) {
+                return {
+                    column: column,
+                    value: row[column],
+                    id: row['id']
+                };
+            });
+        })
+        .enter()
+        .append('td')
+        .text(function(row) { return row.value; });
 
   return table;
 }
@@ -241,13 +243,15 @@ function createTruthTable(data) {
             "Prediction": data["groundAtoms"][key]["prediction"].toFixed(2),
             "Truth": data["truthMap"][key].toFixed(2),
             "Predicate": data["groundAtoms"][key]["text"],
-            "Difference" : Math.abs(data["truthMap"][key] - data["groundAtoms"][key]["prediction"]).toFixed(2),
+            "Difference" : Math.abs(data["truthMap"][key] - 
+                data["groundAtoms"][key]["prediction"]).toFixed(2),
             "id": key,
         }
         truthObjectList.push(truthObject);
     }
     // Create table
-    const predictionTruthCols = ['Predicate', 'Prediction','Truth', 'Difference'];
+    const predictionTruthCols = ['Predicate', 'Prediction','Truth', 
+        'Difference'];
     createTable(truthObjectList, predictionTruthCols, 'Truth Table');
 }
 
@@ -296,8 +300,9 @@ function createRuleOverviewTable(data) {
         }
         overviewData.push(ruleData);
     }
-    const overviewCols = ["Rule", "Identifier", "Weighted", "Count" , "Total Satisfaction",
-                        "Mean Satisfaction", "Total Disatisfaction", "Mean Disatisfaction"];
+    const overviewCols = ["Rule", "Identifier", "Weighted", "Count" , 
+        "Total Satisfaction", "Mean Satisfaction", "Total Disatisfaction",
+        "Mean Disatisfaction"];
     createTable(overviewData, overviewCols, "Rule Overview");
 }
 
@@ -330,7 +335,7 @@ function computeRuleData(data, groundAtom) {
         var groundRuleCount = 0;
         for ( groundRule in groundRules ) {
             if ( groundRules[groundRule]["ruleID"] == rule ) {
-                if ( groundAtom == NONE ) {
+                if ( groundAtom == undefined ) {
                     totSat += 1 - groundRules[groundRule]["disatisfaction"];
                     totDis += groundRules[groundRule]["disatisfaction"];
                     groundRuleCount++;
@@ -411,10 +416,12 @@ function getGroundAtomOptions(data) {
     return groundAtomOptions;
 }
 
-function updateGroundAtomContext(data, menuId, div) {
-    var menu = document.getElementsByClassName(menuId)[0];
-    const groundAtom = parseInt(menu.value);
-    const groundAtomSatData = computeRuleData(data, groundAtom);
+function updateGroundAtomContext(data, groundAtomString, div) {
+    const groundAtom = parseInt(groundAtomString);
+    let groundAtomSatData = computeRuleData(data, groundAtom);
+    console.log(groundAtomSatData);
+    groundAtomSatData = readSatisfactionData(groundAtomSatData);
+    console.log(groundAtomSatData);
 
     const oldChart = document.getElementsByClassName(window.groundAtomChart);
     const oldMenu = document.getElementsByClassName(window.groundAtomYLabelMenuId);
@@ -460,12 +467,28 @@ function createMenu(options, defaultValue, moduleName, div) {
         menuOption.text = options[index].text;
         menuOption.value = options[index].value;
         menu.options.add(menuOption);
-        if ( defaultValue != NONE && options[index] == defaultValue ) {
+        if ( defaultValue != undefined && options[index] == defaultValue ) {
             menu.options.selectedIndex = index;
         }
         index++;
     }
     return menuId;
+}
+
+function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
+        moduleName) {
+    var div = d3.select(DIV_NAME).append("div");
+    div.classed(DIV_CLASS, true);
+    var menuId = undefined;
+    if ( menuOptions != undefined ) {
+        menuId = createMenu(menuOptions, yAxisLabel, moduleName, div);
+    }
+    var chart = createBarChart(data, div, xAxisLabel, yAxisLabel, moduleName);
+    if ( menuId != undefined ) {
+        document.getElementsByClassName(menuId)[0].onchange = function () {
+            updateBarChart(chart, data, menuId);
+        };
+    }
 }
 
 function init(data) {
@@ -482,8 +505,8 @@ function init(data) {
         }
     }
 
-    //Compute all needed rule data and put into one object;
-    var overallRuleData = computeRuleData(data, NONE);
+    // Compute all needed rule data and put into one object;
+    var overallRuleData = computeRuleData(data, undefined);
 
     createTruthTable(data);
     createViolationTable(data);
@@ -493,34 +516,26 @@ function init(data) {
     $(`.viz-module table.tablesorter`).tablesorter();
 
     // Satisfaction Module
-    var satData = readSatisfactionData(overallRuleData);
-    var satDiv = d3.select(DIV_NAME).append("div");
-        satDiv.classed(DIV_CLASS, true);
-    const menuId = createMenu(SATISFACTION_Y_LABELS ,
-        DEF_SATISFACTION_Y_LABEL, RULE_SATISFACTION_MODULE, satDiv);
-    var satDisChart = createBarChart(satData, satDiv,
-        DEF_BAR_CHART_X_LABEL, DEF_SATISFACTION_Y_LABEL,
+    let satData = readSatisfactionData(overallRuleData);
+    setupBarChartModule(satData, DEF_BAR_CHART_X_LABEL, 
+        DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
         RULE_SATISFACTION_MODULE);
-    document.getElementsByClassName(menuId)[0].onchange = function () {
-        updateBarChart(satDisChart, satData, menuId);
-    }
 
     // Rule Count Module
     const ruleCountData = readRuleCountData(overallRuleData);
-    var ruleCountDiv = d3.select(DIV_NAME).append("div");
-        ruleCountDiv.classed(DIV_CLASS, true);
-    var ruleCountChart = createBarChart(ruleCountData, ruleCountDiv,
-        DEF_BAR_CHART_X_LABEL, RULE_COUNT_Y_LABEL, RULE_COUNT_MODULE);
+    setupBarChartModule(ruleCountData, DEF_BAR_CHART_X_LABEL,
+        RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE);
 
     // Ground Atom Context
-    const groundAtomOptions = getGroundAtomOptions(data);
     var groundAtomDiv = d3.select(DIV_NAME).append("div");
-        groundAtomDiv.classed(DIV_CLASS, true);
-    const groundAtomMenuId = createMenu(groundAtomOptions, NONE,
+    groundAtomDiv.classed(DIV_CLASS, true);
+    const groundAtomOptions = getGroundAtomOptions(data);
+    const groundAtomMenuId = createMenu(groundAtomOptions, undefined,
         GROUND_ATOM_CONTEXT_MODULE, groundAtomDiv);
     var groundAtomMenu = document.getElementsByClassName(groundAtomMenuId);
     groundAtomMenu[0].onchange = function() {
-        updateGroundAtomContext(data, groundAtomMenuId, groundAtomDiv);
+        const groundAtomString = groundAtomMenu[0].value;
+        updateGroundAtomContext(data, groundAtomString, groundAtomDiv);
     };
     groundAtomMenu[0].options.selectedIndex = 0;
     groundAtomMenu[0].onchange();
@@ -528,6 +543,7 @@ function init(data) {
     // Set context handlers.
     $('*[data-atom]').click(function() {
         console.log("Selected context atom: " + this.dataset.atom);
+        updateGroundAtomContext(data, this.dataset.atom, groundAtomDiv);
     });
 }
 
