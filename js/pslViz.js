@@ -243,14 +243,14 @@ function createTruthTable(data) {
             "Prediction": data["groundAtoms"][key]["prediction"].toFixed(2),
             "Truth": data["truthMap"][key].toFixed(2),
             "Predicate": data["groundAtoms"][key]["text"],
-            "Difference" : Math.abs(data["truthMap"][key] - 
+            "Difference" : Math.abs(data["truthMap"][key] -
                 data["groundAtoms"][key]["prediction"]).toFixed(2),
             "id": key,
         }
         truthObjectList.push(truthObject);
     }
     // Create table
-    const predictionTruthCols = ['Predicate', 'Prediction','Truth', 
+    const predictionTruthCols = ['Predicate', 'Prediction','Truth',
         'Difference'];
     createTable(truthObjectList, predictionTruthCols, 'Truth Table');
 }
@@ -279,7 +279,7 @@ function createViolationTable(data) {
     }
     // Create table
     const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
-    createTable(violationObjectList, violatedGroundRulesCols, 
+    createTable(violationObjectList, violatedGroundRulesCols,
         'Violated Constraints');
 }
 
@@ -512,7 +512,7 @@ function init(data) {
 
     // Satisfaction Module
     let satData = readSatisfactionData(overallRuleData);
-    setupBarChartModule(satData, DEF_BAR_CHART_X_LABEL, 
+    setupBarChartModule(satData, DEF_BAR_CHART_X_LABEL,
         DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
         RULE_SATISFACTION_MODULE);
 
