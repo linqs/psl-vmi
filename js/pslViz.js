@@ -42,7 +42,7 @@ function transformBarChart(chart, barData) {
     for (var i = 1; i < barData.length+1; i++) {
         var datum = {};
         datum.type = chart.yAxisLabel;
-        datum.ruleNo = barData[i-1]["Identifier"];
+        datum.ruleNo = barData[i-1]["ID"];
         datum.label = barData[i-1][chart.xAxisLabel];
         datum.value = barData[i-1][chart.yAxisLabel];
         data.push(datum);
@@ -84,7 +84,7 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
     for (var i = 1; i < chartData.length+1; i++) {
         var datum = {};
         datum.type = yAxisLabel;
-        datum.ruleNo = chartData[i-1]["Identifier"];
+        datum.ruleNo = chartData[i-1]["ID"];
         datum.label = chartData[i-1][xAxisLabel];
         datum.value = chartData[i-1][yAxisLabel];
         data.push(datum);
@@ -286,18 +286,16 @@ function createRuleOverviewTable(data) {
         var rule = data[i];
         var ruleData = {
             "Rule" : rule["Rule"],
-            "Identifier" : rule["Identifier"],
+            "ID" : rule["ID"],
             "Weighted" : rule["Weighted"],
             "Count" : rule["Count"],
-            "Total Satisfaction": rule["Total Satisfaction"].toFixed(2),
-            "Mean Satisfaction": rule["Mean Satisfaction"].toFixed(2),
             "Total Disatisfaction": rule["Total Disatisfaction"].toFixed(2),
             "Mean Disatisfaction": rule["Mean Disatisfaction"].toFixed(2)
         }
         overviewData.push(ruleData);
     }
-    const overviewCols = ["Rule", "Identifier", "Weighted", "Count" , "Total Satisfaction",
-                        "Mean Satisfaction", "Total Disatisfaction", "Mean Disatisfaction"];
+    const overviewCols = ["ID", "Rule", "Weighted", "Count" ,
+                        "Total Disatisfaction", "Mean Disatisfaction"];
     createTable(overviewData, overviewCols, "Rule Overview");
 }
 
@@ -349,7 +347,7 @@ function computeRuleData(data, groundAtom) {
         disSatMean = (groundRuleCount != 0 ? (totDis/groundRuleCount):(0));
         ruleData = {
             "Rule": rules[rule]["text"],
-            "Identifier" : ruleIdentifier,
+            "ID" : ruleIdentifier,
             "Weighted" : rules[rule]["weighted"],
             "Count" : rules[rule]["count"],
             "Total Satisfaction": totSat,
@@ -371,7 +369,7 @@ function readSatisfactionData(data) {
         if (rule["Weighted"] == true) {
             var ruleData = {
                 "Rule" : rule["Rule"],
-                "Identifier" : rule["Identifier"],
+                "ID" : rule["ID"],
                 "Total Satisfaction": rule["Total Satisfaction"],
                 "Mean Satisfaction": rule["Mean Satisfaction"],
                 "Total Disatisfaction": rule["Total Disatisfaction"],
@@ -391,7 +389,7 @@ function readRuleCountData(data) {
         var ruleData = {
             "Rule": rule["Rule"],
             "Count": rule["Count"],
-            "Identifier" : rule["Identifier"]
+            "ID" : rule["ID"]
         }
         ruleCountData.push(ruleData);
     }
