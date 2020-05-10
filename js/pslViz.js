@@ -77,7 +77,7 @@ function transformBarChart(chart, barData) {
 }
 
 function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
-        chartId) {
+        chartId, title) {
     var data = [];
     for (var i = 1; i < chartData.length+1; i++) {
         var datum = {};
@@ -87,6 +87,10 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
         datum.value = chartData[i-1][yAxisLabel];
         data.push(datum);
     }
+
+    let titleDiv = div.append('div');
+    titleDiv.attr('class', 'title');
+    titleDiv.text(title);
 
     const outterWidth = data.length * BAR_CHART_COL_WIDTH;
     const outterHeight = BAR_CHART_HEIGHT;
@@ -471,14 +475,14 @@ function createMenu(options, defaultValue, moduleName, div) {
 }
 
 function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
-        moduleName) {
+        moduleName, title) {
     var div = d3.select(DIV_NAME).append("div");
     div.classed(DIV_CLASS, true);
     var menuId = undefined;
     if ( menuOptions != undefined ) {
         menuId = createMenu(menuOptions, yAxisLabel, moduleName, div);
     }
-    var chart = createBarChart(data, div, xAxisLabel, yAxisLabel, moduleName);
+    var chart = createBarChart(data, div, xAxisLabel, yAxisLabel, moduleName, title);
     if ( menuId != undefined ) {
         document.getElementsByClassName(menuId)[0].onchange = function () {
             updateBarChart(chart, data, menuId);
@@ -514,12 +518,12 @@ function init(data) {
     let satData = readSatisfactionData(overallRuleData);
     setupBarChartModule(satData, DEF_BAR_CHART_X_LABEL,
         DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
-        RULE_SATISFACTION_MODULE);
+        RULE_SATISFACTION_MODULE, "Rule Compatability");
 
     // Rule Count Module
     const ruleCountData = readRuleCountData(overallRuleData);
     setupBarChartModule(ruleCountData, DEF_BAR_CHART_X_LABEL,
-        RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE);
+        RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE, "Ground Rule Count");
 
     // Ground Atom Context
     var groundAtomDiv = d3.select(DIV_NAME).append("div");
