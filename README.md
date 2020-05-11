@@ -8,6 +8,6 @@ $ ./run.sh --viz
 ```
 Or specify a path to for data to be written into:
 ```bash
-$ ./run.sh --viz path=<path>
+$ ./run.sh --viz <path>
 ```
 Move the data file into this repository and open the html file with any browser
