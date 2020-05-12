@@ -22,8 +22,8 @@ const DEF_SATISFACTION_Y_LABEL = "Total Satisfaction";
 const SATISFACTION_Y_LABELS = [
     {"text": "Total Satisfaction",   "value": "Total Satisfaction"},
     {"text": "Mean Satisfaction",    "value": "Mean Satisfaction"},
-    {"text": "Total Disatisfaction", "value": "Total Disatisfaction"},
-    {"text": "Mean Disatisfaction",  "value": "Mean Disatisfaction"}
+    {"text": "Total Dissatisfaction", "value": "Total Dissatisfaction"},
+    {"text": "Mean Dissatisfaction",  "value": "Mean Dissatisfaction"}
 ];
 
 function updateBarChart(chart, data, menuId) {
@@ -268,12 +268,12 @@ function createViolationTable(data) {
         if (rulesObject[ruleID]["weighted"] == false) {
             for (groundRuleID in groundRulesObject) {
                 if (groundRulesObject[groundRuleID]["ruleID"] == ruleID) {
-                    if (groundRulesObject[groundRuleID]["disatisfaction"] > 0) {
+                    if (groundRulesObject[groundRuleID]["dissatisfaction"] > 0) {
                         var violationObject = {
                             //TODO: Constraints seem to never be in groundRules
                             "Violated Constraint": "",
                             "Dissatisfaction":
-                                groundRulesObject[groundRuleID]["disatisfaction"]
+                                groundRulesObject[groundRuleID]["dissatisfaction"]
                         };
                         violationObjectList.push(violationObject);
                     }
@@ -298,13 +298,13 @@ function createRuleOverviewTable(data) {
             "ID" : rule["ID"],
             "Weighted" : rule["Weighted"],
             "Count" : rule["Count"],
-            "Total Disatisfaction": rule["Total Disatisfaction"].toFixed(2),
-            "Mean Disatisfaction": rule["Mean Disatisfaction"].toFixed(2)
+            "Total Dissatisfaction": rule["Total Dissatisfaction"].toFixed(2),
+            "Mean Dissatisfaction": rule["Mean Dissatisfaction"].toFixed(2)
         }
         overviewData.push(ruleData);
     }
     const overviewCols = ["ID", "Rule", "Weighted", "Count",
-        "Total Disatisfaction", "Mean Disatisfaction"];
+        "Total Dissatisfaction", "Mean Dissatisfaction"];
     createTable(overviewData, overviewCols, "Rule Overview");
 }
 
@@ -338,15 +338,15 @@ function computeRuleData(data, groundAtom) {
         for ( groundRule in groundRules ) {
             if ( groundRules[groundRule]["ruleID"] == rule ) {
                 if ( groundAtom == undefined ) {
-                    totSat += 1 - groundRules[groundRule]["disatisfaction"];
-                    totDis += groundRules[groundRule]["disatisfaction"];
+                    totSat += 1 - groundRules[groundRule]["dissatisfaction"];
+                    totDis += groundRules[groundRule]["dissatisfaction"];
                     groundRuleCount++;
                 }
                 else {
                     const groundAtoms = groundRules[groundRule]["groundAtoms"];
                     if ( exists(groundAtoms, groundAtom) ) {
-                        totSat += 1 - groundRules[groundRule]["disatisfaction"];
-                        totDis += groundRules[groundRule]["disatisfaction"];
+                        totSat += 1 - groundRules[groundRule]["dissatisfaction"];
+                        totDis += groundRules[groundRule]["dissatisfaction"];
                         groundRuleCount++;
                     }
                 }
@@ -361,8 +361,8 @@ function computeRuleData(data, groundAtom) {
             "Count" : rules[rule]["count"],
             "Total Satisfaction": totSat,
             "Mean Satisfaction": satMean,
-            "Total Disatisfaction": totDis,
-            "Mean Disatisfaction": disSatMean
+            "Total Dissatisfaction": totDis,
+            "Mean Dissatisfaction": disSatMean
         };
         ruleIdentifier++;
         satisfactionData.push(ruleData);
@@ -381,8 +381,8 @@ function readSatisfactionData(data) {
                 "ID" : rule["ID"],
                 "Total Satisfaction": rule["Total Satisfaction"],
                 "Mean Satisfaction": rule["Mean Satisfaction"],
-                "Total Disatisfaction": rule["Total Disatisfaction"],
-                "Mean Disatisfaction": rule["Mean Disatisfaction"]
+                "Total Dissatisfaction": rule["Total Dissatisfaction"],
+                "Mean Dissatisfaction": rule["Mean Dissatisfaction"]
             }
             ruleSatData.push(ruleData);
         }
@@ -488,6 +488,22 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
             updateBarChart(chart, data, menuId);
         };
     }
+}
+
+// Given data and ground rule ID returns the rule in non-DNF form
+function createGroundRule(data, groundRuleID) {
+    var groundRuleObject = data["groundRules"][groundRuleID];
+    var parentRule = data["rules"][groundRuleObject["ruleID"]]["text"];
+
+    for (let [variable, constant] of Object.entries(groundRuleObject["constants"])){
+        var re = new RegExp(variable,"g");
+        parentRule = parentRule.replace(re, constant);
+    }
+
+    return {
+        "text" : parentRule,
+        "dissatisfaction" : groundRuleObject["dissatisfaction"]
+    };
 }
 
 function init(data) {
