@@ -83,12 +83,13 @@ rect.mover {
 }
 
 /* TODO: This is temporary for the presentation */
-.psl-viz :nth-child(1) {order: 4;}
-.psl-viz :nth-child(2) {order: 6;}
-.psl-viz :nth-child(3) {order: 1;}
-.psl-viz :nth-child(4) {order: 2;}
-.psl-viz :nth-child(5) {order: 3;}
-.psl-viz :nth-child(6) {order: 5;}
+.psl-viz :nth-child(1) {order: 4;} /*truth table*/
+.psl-viz :nth-child(2) {order: 7;} /*violation table*/
+.psl-viz :nth-child(3) {order: 1;} /*rule overview table*/
+.psl-viz :nth-child(4) {order: 2;} /*Compatability chart*/
+.psl-viz :nth-child(5) {order: 3;} /*rule count chart*/
+.psl-viz :nth-child(6) {order: 5;} /*ground atom compatability */
+.psl-viz :nth-child(7) {order: 6;} /*associated ground rules per atom*/
 
 .viz-module select {
     display: block;

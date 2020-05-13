@@ -433,6 +433,23 @@ function updateGroundAtomContext(data, groundAtomString, div) {
         oldMenu[0].remove();
     }
 
+    //TODO: Table does not change when you click a new ground atom
+    // Create associtated ground rules list
+    var groundRuleObject = data["groundRules"];
+    var associatedGroundRules = [];
+    for (groundRuleID in groundRuleObject){
+        if (groundRuleObject[groundRuleID]["groundAtoms"].includes(groundAtom)){
+            associatedGroundRules.push(createGroundRule(data, groundRuleID))
+        }
+    }
+    const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
+    var className = "associatedRules"
+    createTable(associatedGroundRules,associatedGroundRuleCols,
+                "Associated Ground Rules");
+
+    // Add tablesorter to this new table
+    $(`.viz-module table.tablesorter`).tablesorter();
+
     const groundAtomYLabelMenuId = createMenu(SATISFACTION_Y_LABELS,
         DEF_SATISFACTION_Y_LABEL, GROUND_ATOM_SATISFACTION_MODULE, div);
     const groundAtomChart = createBarChart(groundAtomSatData, div,
@@ -496,13 +513,13 @@ function createGroundRule(data, groundRuleID) {
     var parentRule = data["rules"][groundRuleObject["ruleID"]]["text"];
 
     for (let [variable, constant] of Object.entries(groundRuleObject["constants"])){
-        var re = new RegExp(variable,"g");
+        var re = new RegExp("\\b"+variable+"\\b","g");
         parentRule = parentRule.replace(re, constant);
     }
 
     return {
-        "text" : parentRule,
-        "dissatisfaction" : groundRuleObject["dissatisfaction"]
+        "Ground Rule" : parentRule,
+        "Dissatisfaction" : groundRuleObject["dissatisfaction"]
     };
 }
 
