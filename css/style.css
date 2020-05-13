@@ -82,14 +82,14 @@ rect.mover {
     box-shadow: 3px 3px #bbb;
 }
 
-/* TODO: This is temporary for the presentation */
-.psl-viz :nth-child(1) {order: 4;} /*truth table*/
-.psl-viz :nth-child(2) {order: 7;} /*violation table*/
-.psl-viz :nth-child(3) {order: 1;} /*rule overview table*/
-.psl-viz :nth-child(4) {order: 2;} /*Compatability chart*/
-.psl-viz :nth-child(5) {order: 3;} /*rule count chart*/
-.psl-viz :nth-child(6) {order: 5;} /*ground atom compatability */
-.psl-viz :nth-child(7) {order: 6;} /*associated ground rules per atom*/
+/* Order for  all the modules*/
+.psl-viz .module-overview-table {order: 10;} /*rule overview table*/
+.psl-viz .module-compatability-chart {order: 20;} /*Compatability chart*/
+.psl-viz .module-rulecount-chart {order: 30;} /*rule count chart*/
+.psl-viz .module-truth-table {order: 40;} /*truth table*/
+.psl-viz .module-ground-atom-compatability-chart {order: 50;}/*ground atom compatability */
+.psl-viz .module-assocaited-rules-table {order: 60;} /*associated ground rules per atom*/
+.psl-viz .module-violation-table {order: 70;} /*violation table*/
 
 .viz-module select {
     display: block;

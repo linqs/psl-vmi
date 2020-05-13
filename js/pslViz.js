@@ -77,7 +77,7 @@ function transformBarChart(chart, barData) {
 }
 
 function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
-        chartId, title) {
+        chartId, title, className) {
     var data = [];
     for (var i = 1; i < chartData.length+1; i++) {
         var datum = {};
@@ -87,6 +87,8 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
         datum.value = chartData[i-1][yAxisLabel];
         data.push(datum);
     }
+
+    div.classed(className, true);
 
     let titleDiv = div.append('div');
     titleDiv.attr('class', 'title');
@@ -192,9 +194,10 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
     };
 }
 
-function createTable(data, columns, title) {
+function createTable(data, columns, title, className) {
 	var div = d3.select('.psl-viz').append('div');
 	div.classed("viz-module", true);
+    div.classed(className, true);
 
     let titleDiv = div.append('div');
     titleDiv.attr('class', 'title');
@@ -256,7 +259,7 @@ function createTruthTable(data) {
     // Create table
     const predictionTruthCols = ['Predicate', 'Prediction','Truth',
         'Difference'];
-    createTable(truthObjectList, predictionTruthCols, 'Truth Table');
+    createTable(truthObjectList, predictionTruthCols, 'Truth Table', "module-truth-table");
 }
 
 function createViolationTable(data) {
@@ -284,7 +287,7 @@ function createViolationTable(data) {
     // Create table
     const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
     createTable(violationObjectList, violatedGroundRulesCols,
-        'Violated Constraints');
+        'Violated Constraints', "module-violation-table");
 }
 
 //Create a table that gives an overview for all rules
@@ -305,7 +308,7 @@ function createRuleOverviewTable(data) {
     }
     const overviewCols = ["ID", "Rule", "Weighted", "Count",
         "Total Dissatisfaction", "Mean Dissatisfaction"];
-    createTable(overviewData, overviewCols, "Rule Overview");
+    createTable(overviewData, overviewCols, "Rule Overview", "module-overview-table");
 }
 
 function exists(container, item) {
@@ -433,19 +436,12 @@ function updateGroundAtomContext(data, groundAtomString, div) {
         oldMenu[0].remove();
     }
 
-    // TODO: In this instance I use the title div of the table as an identifier
-    // so that it can be deleted. Perhaps we want to make all titles global
-    // variables so that we can refactor this into a function that deletes divs?
-    
-    // Get rid of the old associated rules table via div title
-    var vizModuleDivs = document.getElementsByClassName('viz-module');
-    for (let vizDiv of vizModuleDivs) {
-        if (vizDiv.firstChild != null) {
-            if (vizDiv.firstChild.innerText == "Associated Ground Rules") {
-                vizDiv.remove();
-            }
-        }
+    // Get rid of the old associated rules table via class name
+    var associatedTableDiv = document.getElementsByClassName('viz-module module-assocaited-rules-table');
+    if (associatedTableDiv.length != 0) {
+        associatedTableDiv[0].remove();
     }
+
     // Create associtated ground rules list
     var groundRuleObject = data["groundRules"];
     var associatedGroundRules = [];
@@ -456,7 +452,7 @@ function updateGroundAtomContext(data, groundAtomString, div) {
     }
     const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
     createTable(associatedGroundRules,associatedGroundRuleCols,
-                "Associated Ground Rules");
+                "Associated Ground Rules", "module-assocaited-rules-table");
 
     // Add tablesorter to this new table
     $(`.viz-module table.tablesorter`).tablesorter();
@@ -465,7 +461,7 @@ function updateGroundAtomContext(data, groundAtomString, div) {
         DEF_SATISFACTION_Y_LABEL, GROUND_ATOM_SATISFACTION_MODULE, div);
     const groundAtomChart = createBarChart(groundAtomSatData, div,
         DEF_BAR_CHART_X_LABEL, DEF_SATISFACTION_Y_LABEL,
-        GROUND_ATOM_SATISFACTION_MODULE);
+        GROUND_ATOM_SATISFACTION_MODULE, null, "module-ground-atom-compatability-chart");
     // Keep track of the Y-label menu and the ground atom chart so as the user
     // selects a new ground atom we delete the old bar chart and menu
     //
@@ -503,14 +499,14 @@ function createMenu(options, defaultValue, moduleName, div) {
 }
 
 function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
-        moduleName, title) {
+        moduleName, title, className) {
     var div = d3.select(DIV_NAME).append("div");
     div.classed(DIV_CLASS, true);
     var menuId = undefined;
     if ( menuOptions != undefined ) {
         menuId = createMenu(menuOptions, yAxisLabel, moduleName, div);
     }
-    var chart = createBarChart(data, div, xAxisLabel, yAxisLabel, moduleName, title);
+    var chart = createBarChart(data, div, xAxisLabel, yAxisLabel, moduleName, title, className);
     if ( menuId != undefined ) {
         document.getElementsByClassName(menuId)[0].onchange = function () {
             updateBarChart(chart, data, menuId);
@@ -562,12 +558,12 @@ function init(data) {
     let satData = readSatisfactionData(overallRuleData);
     setupBarChartModule(satData, DEF_BAR_CHART_X_LABEL,
         DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
-        RULE_SATISFACTION_MODULE, "Rule Compatability");
+        RULE_SATISFACTION_MODULE, "Rule Compatability", "module-compatability-chart");
 
     // Rule Count Module
     const ruleCountData = readRuleCountData(overallRuleData);
     setupBarChartModule(ruleCountData, DEF_BAR_CHART_X_LABEL,
-        RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE, "Ground Rule Count");
+        RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE, "Ground Rule Count", "module-rulecount-chart");
 
     // Ground Atom Context
     var groundAtomDiv = d3.select(DIV_NAME).append("div");
