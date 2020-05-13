@@ -26,12 +26,10 @@ const SATISFACTION_Y_LABELS = [
     {"text": "Mean Dissatisfaction",  "value": "Mean Dissatisfaction"}
 ];
 
-function updateBarChart(chart, data, menuId) {
-    const yVal = document.getElementsByClassName(menuId)[0].value;
-    console.log(yVal);
+function updateBarChart(chart, data, newYVal) {
 
     // calling update
-    chart.yAxisLabel = yVal;
+    chart.yAxisLabel = newYVal;
     transformBarChart(chart, data);
 }
 
@@ -348,7 +346,8 @@ function computeRuleData(data, groundAtom) {
                 else {
                     const groundAtoms = groundRules[groundRule]["groundAtoms"];
                     if ( exists(groundAtoms, groundAtom) ) {
-                        totSat += 1 - groundRules[groundRule]["dissatisfaction"];
+                        totSat += 1 -
+                            groundRules[groundRule]["dissatisfaction"];
                         totDis += groundRules[groundRule]["dissatisfaction"];
                         groundRuleCount++;
                     }
@@ -408,24 +407,10 @@ function readRuleCountData(data) {
     return ruleCountData;
 }
 
-function getGroundAtomOptions(data) {
-    const groundAtoms = data["groundAtoms"];
-    groundAtomOptions = [];
-    for ( groundAtom in groundAtoms ) {
-        var option = {
-            "text": groundAtoms[groundAtom]["text"],
-            "value": groundAtom
-        };
-        groundAtomOptions.push(option);
-    }
-    return groundAtomOptions;
-}
-
 function updateGroundAtomContext(data, groundAtomString, div) {
     const groundAtom = parseInt(groundAtomString);
     let SatData = computeRuleData(data, groundAtom);
     let groundAtomSatData = readSatisfactionData(SatData);
-    console.log(groundAtomSatData);
 
     const oldChart = document.getElementsByClassName(window.groundAtomChart);
     const oldMenu = document.getElementsByClassName(window.groundAtomYLabelMenuId);
@@ -474,7 +459,7 @@ function updateGroundAtomContext(data, groundAtomString, div) {
     var menu = document.getElementsByClassName(groundAtomYLabelMenuId)[0];
     menu.onchange = function() {
         updateBarChart(groundAtomChart, groundAtomSatData,
-            groundAtomYLabelMenuId);
+            menu.value);
     };
 }
 
@@ -509,7 +494,8 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
     var chart = createBarChart(data, div, xAxisLabel, yAxisLabel, moduleName, title, className);
     if ( menuId != undefined ) {
         document.getElementsByClassName(menuId)[0].onchange = function () {
-            updateBarChart(chart, data, menuId);
+            let newVal = document.getElementsByClassName(menuId)[0].value;
+            updateBarChart(chart, data, newVal);
         };
     }
 }
@@ -561,17 +547,16 @@ function init(data) {
         RULE_SATISFACTION_MODULE, "Rule Compatability", "module-compatability-chart");
 
     // Rule Count Module
-    const ruleCountData = readRuleCountData(overallRuleData);
+    let ruleCountData = readRuleCountData(overallRuleData);
     setupBarChartModule(ruleCountData, DEF_BAR_CHART_X_LABEL,
         RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE, "Ground Rule Count", "module-rulecount-chart");
 
     // Ground Atom Context
-    var groundAtomDiv = d3.select(DIV_NAME).append("div");
+    let groundAtomDiv = d3.select(DIV_NAME).append("div");
     groundAtomDiv.classed(DIV_CLASS, true);
 
     // Set context handlers.
     $('*[data-atom]').click(function() {
-        console.log("Selected context atom: " + this.dataset.atom);
         updateGroundAtomContext(data, this.dataset.atom, groundAtomDiv);
     });
 }
