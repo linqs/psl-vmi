@@ -433,7 +433,19 @@ function updateGroundAtomContext(data, groundAtomString, div) {
         oldMenu[0].remove();
     }
 
-    //TODO: Table does not change when you click a new ground atom
+    // TODO: In this instance I use the title div of the table as an identifier
+    // so that it can be deleted. Perhaps we want to make all titles global
+    // variables so that we can refactor this into a function that deletes divs?
+    
+    // Get rid of the old associated rules table via div title
+    var vizModuleDivs = document.getElementsByClassName('viz-module');
+    for (let vizDiv of vizModuleDivs) {
+        if (vizDiv.firstChild != null) {
+            if (vizDiv.firstChild.innerText == "Associated Ground Rules") {
+                vizDiv.remove();
+            }
+        }
+    }
     // Create associtated ground rules list
     var groundRuleObject = data["groundRules"];
     var associatedGroundRules = [];
@@ -443,7 +455,6 @@ function updateGroundAtomContext(data, groundAtomString, div) {
         }
     }
     const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
-    var className = "associatedRules"
     createTable(associatedGroundRules,associatedGroundRuleCols,
                 "Associated Ground Rules");
 
