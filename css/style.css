@@ -88,7 +88,7 @@ rect.mover {
 .psl-viz .module-rulecount-chart {order: 30;} /*rule count chart*/
 .psl-viz .module-truth-table {order: 40;} /*truth table*/
 .psl-viz .module-ground-atom-compatability-chart {order: 50;}/*ground atom compatability */
-.psl-viz .module-assocaited-rules-table {order: 60;} /*associated ground rules per atom*/
+.psl-viz .module-associated-rules-table {order: 60;} /*associated ground rules per atom*/
 .psl-viz .module-violation-table {order: 70;} /*violation table*/
 
 .viz-module select {

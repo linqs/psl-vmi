@@ -404,7 +404,7 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     let SatData = computeRuleData(data, groundAtom);
     let groundAtomSatData = readSatisfactionData(SatData);
 
-    let groundAtomBarChartDiv = document.getElementsByClassName(DIV_CLASS + 
+    let groundAtomBarChartDiv = document.getElementsByClassName(DIV_CLASS +
         " module-ground-atom-compatability-chart");
     if (groundAtomBarChartDiv.length != 0) {
         groundAtomBarChartDiv[0].remove();
@@ -412,7 +412,7 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
 
     // Get rid of the old associated rules table via class name
     var associatedTableDiv = document.getElementsByClassName(DIV_CLASS +
-        " module-assocaited-rules-table");
+        " module-associated-rules-table");
     if (associatedTableDiv.length != 0) {
         associatedTableDiv[0].remove();
     }
@@ -425,15 +425,17 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
             associatedGroundRules.push(createGroundRule(data, groundRuleID))
         }
     }
+    let tableTitle = data["groundAtoms"][groundAtom]["text"] +
+        " Associated Ground Rules";
     const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
-    createTable(associatedGroundRules,associatedGroundRuleCols,
-        "Associated Ground Rules", "module-assocaited-rules-table");
+    createTable(associatedGroundRules, associatedGroundRuleCols, tableTitle,
+        "module-associated-rules-table");
 
     // Add tablesorter to this new table
     $(`.viz-module table.tablesorter`).tablesorter();
 
     // Create Compatibility Chart with Ground Atom Context
-    let barChartTitle = data["groundAtoms"][groundAtom]["text"] + 
+    let barChartTitle = data["groundAtoms"][groundAtom]["text"] +
         " Rule Compatability";
     setupBarChartModule(groundAtomSatData, DEF_BAR_CHART_X_LABEL,
         DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
