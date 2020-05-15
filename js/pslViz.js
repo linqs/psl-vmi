@@ -12,11 +12,20 @@ const BAR_CHART_TRANSITION_DURATION = 1000;
 const DIV_NAME = ".psl-viz";
 const DIV_CLASS = "viz-module";
 
-const GROUND_ATOM_CONTEXT_MODULE = "GroundAtom";
-const GROUND_ATOM_SATISFACTION_MODULE = "GroundAtomSatisfaction"
-const RULE_COUNT_MODULE = "RuleCount";
+const RULE_OVERVIEW_MODULE = "module-overview-table";
+const RULE_OVERVIEW_TABLE_TITLE = "Rule Overview";
+const TRUTH_TABLE_MODULE = "module-truth-table";
+const TRUTH_TABLE_TITLE = "Truth Table";
+const VIOLATED_GROUND_RULES_MODULE = "module-violation-table";
+const VIOLATED_GROUND_RULES_TABLE_TITLE = "Violated Constraints";
+const GROUND_ATOM_SATISFACTION_MODULE ="module-ground-atom-compatability-chart";
+const GROUND_ATOM_RULES_MODULE = "module-associated-rules-table";
+const ASSOCIATED_GROUND_RULES_TABLE_TITLE = "Associated Ground Rules";
+const RULE_COUNT_MODULE = "module-rulecount-chart";
 const RULE_COUNT_Y_LABEL = "Count";
-const RULE_SATISFACTION_MODULE = "SatDis";
+const RULE_COUNT_CHART_TITLE = "Ground Rule Count";
+const RULE_SATISFACTION_MODULE = "module-compatability-chart";
+const RULE_SATISFACTION_CHART_TITLE = "Rule Compatability";
 const DEF_BAR_CHART_X_LABEL = "Rule";
 const DEF_SATISFACTION_Y_LABEL = "Total Satisfaction";
 const SATISFACTION_Y_LABELS = [
@@ -51,7 +60,6 @@ function transformBarChart(chart, barData) {
         .text(chart.yAxisLabel);
 
     // Update the call function so the new scale is used for the x and y axis
-
     chart.svg.transition().select(".y-axis")
         .duration(BAR_CHART_TRANSITION_DURATION)
         .call(chart.yAxis);
@@ -247,8 +255,8 @@ function createTruthTable(data) {
     // Create table
     const predictionTruthCols = ['Predicate', 'Prediction','Truth',
         'Difference'];
-    createTable(truthObjectList, predictionTruthCols, 'Truth Table', 
-        "module-truth-table");
+    createTable(truthObjectList, predictionTruthCols, TRUTH_TABLE_TITLE,
+        TRUTH_TABLE_MODULE);
 }
 
 function createViolationTable(data) {
@@ -260,7 +268,7 @@ function createViolationTable(data) {
         if (rulesObject[ruleID]["weighted"] == false) {
             for (groundRuleID in groundRulesObject) {
                 if (groundRulesObject[groundRuleID]["ruleID"] == ruleID) {
-                    if (groundRulesObject[groundRuleID]["dissatisfaction"] > 0) {
+                    if (groundRulesObject[groundRuleID]["dissatisfaction"] > 0){
                         var violationObject = {
                             //TODO: Constraints seem to never be in groundRules
                             "Violated Constraint": "",
@@ -276,7 +284,7 @@ function createViolationTable(data) {
     // Create table
     const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
     createTable(violationObjectList, violatedGroundRulesCols,
-        'Violated Constraints', "module-violation-table");
+        VIOLATED_GROUND_RULES_TABLE_TITLE, VIOLATED_GROUND_RULES_MODULE);
 }
 
 //Create a table that gives an overview for all rules
@@ -297,8 +305,8 @@ function createRuleOverviewTable(data) {
     }
     const overviewCols = ["ID", "Rule", "Weighted", "Count",
         "Total Dissatisfaction", "Mean Dissatisfaction"];
-    createTable(overviewData, overviewCols, "Rule Overview",
-        "module-overview-table");
+    createTable(overviewData, overviewCols, RULE_OVERVIEW_TABLE_TITLE,
+        RULE_OVERVIEW_MODULE);
 }
 
 function exists(container, item) {
@@ -405,14 +413,14 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     let groundAtomSatData = readSatisfactionData(SatData);
 
     let groundAtomBarChartDiv = document.getElementsByClassName(DIV_CLASS +
-        " module-ground-atom-compatability-chart");
+        " " + GROUND_ATOM_SATISFACTION_MODULE);
     if (groundAtomBarChartDiv.length != 0) {
         groundAtomBarChartDiv[0].remove();
     }
 
     // Get rid of the old associated rules table via class name
     var associatedTableDiv = document.getElementsByClassName(DIV_CLASS +
-        " module-associated-rules-table");
+        " " + GROUND_ATOM_RULES_MODULE);
     if (associatedTableDiv.length != 0) {
         associatedTableDiv[0].remove();
     }
@@ -425,22 +433,21 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
             associatedGroundRules.push(createGroundRule(data, groundRuleID))
         }
     }
-    let tableTitle = data["groundAtoms"][groundAtom]["text"] +
-        " Associated Ground Rules";
+    let tableTitle = data["groundAtoms"][groundAtom]["text"] + " " +
+        ASSOCIATED_GROUND_RULES_TABLE_TITLE;
     const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
     createTable(associatedGroundRules, associatedGroundRuleCols, tableTitle,
-        "module-associated-rules-table");
+        GROUND_ATOM_RULES_MODULE);
 
     // Add tablesorter to this new table
     $(`.viz-module table.tablesorter`).tablesorter();
 
     // Create Compatibility Chart with Ground Atom Context
-    let barChartTitle = data["groundAtoms"][groundAtom]["text"] +
-        " Rule Compatability";
+    let barChartTitle = data["groundAtoms"][groundAtom]["text"] + " " +
+        RULE_SATISFACTION_CHART_TITLE;
     setupBarChartModule(groundAtomSatData, DEF_BAR_CHART_X_LABEL,
         DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
-        GROUND_ATOM_SATISFACTION_MODULE, barChartTitle,
-        "module-ground-atom-compatability-chart");
+        GROUND_ATOM_SATISFACTION_MODULE, barChartTitle);
 }
 
 function createMenu(options, defaultValue, moduleName, div) {
@@ -464,7 +471,7 @@ function createMenu(options, defaultValue, moduleName, div) {
 }
 
 function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
-        moduleName, title, className) {
+        className, title) {
     var div = d3.select(DIV_NAME).append("div");
     div.classed(DIV_CLASS, true);
 
@@ -475,9 +482,9 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
 
     var menuId = undefined;
     if ( menuOptions != undefined ) {
-        menuId = createMenu(menuOptions, yAxisLabel, moduleName, div);
+        menuId = createMenu(menuOptions, yAxisLabel, className, div);
     }
-    var chart = createBarChart(data, div, xAxisLabel, yAxisLabel, moduleName);
+    var chart = createBarChart(data, div, xAxisLabel, yAxisLabel, className);
     if ( menuId != undefined ) {
         document.getElementsByClassName(menuId)[0].onchange = function () {
             let newVal = document.getElementsByClassName(menuId)[0].value;
@@ -530,14 +537,13 @@ function init(data) {
     let satData = readSatisfactionData(overallRuleData);
     setupBarChartModule(satData, DEF_BAR_CHART_X_LABEL,
         DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
-        RULE_SATISFACTION_MODULE, "Rule Compatability", 
-        "module-compatability-chart");
+        RULE_SATISFACTION_MODULE, RULE_SATISFACTION_CHART_TITLE);
 
     // Rule Count Module
     let ruleCountData = readRuleCountData(overallRuleData);
     setupBarChartModule(ruleCountData, DEF_BAR_CHART_X_LABEL,
-        RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE, "Ground Rule Count",
-        "module-rulecount-chart");
+        RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE,
+        RULE_COUNT_CHART_TITLE);
 
     // Set context handlers.
     $('*[data-atom]').click(function() {
