@@ -72,11 +72,8 @@ function transformBarChart(chart, barData) {
         .attr("x", function(row) { return chart.xScale(row.ruleNo); })
         .attr("width", chart.xScale.rangeBand())
         .attr("y", function(row) { return chart.yScale(row.value); })
-        .attr("height", function(row) {
-            const newHeight = chart.innerHeight - chart.yScale(row.value);
-            if ( newHeight == 0 )
-                return 1;
-            return newHeight;
+        .attr("height", function(row) { return chart.innerHeight -
+            chart.yScale(row.value);
         });
 }
 
@@ -165,13 +162,9 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
         .attr("x", function(row) { return xScale(row.ruleNo); })
         .attr("width", xScale.rangeBand())
         .attr("y", function(row) { return yScale(row.value); })
-        .attr("height", function(row) {
-            const newHeight = innerHeight - yScale(row.value);
-            if (newHeight == 0) {
-                return 1;
-            }
-            return newHeight;
-        })
+        .attr("height", function(row) { return innerHeight -
+            yScale(row.value);
+        });
 
     return {
         'id': chartId,
