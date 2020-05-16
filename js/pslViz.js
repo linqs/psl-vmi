@@ -491,15 +491,49 @@ function createGroundRule(data, groundRuleID) {
     var groundRuleObject = data["groundRules"][groundRuleID];
     var parentRule = data["rules"][groundRuleObject["ruleID"]]["text"];
 
+    // Create patterns to find predicate / constants and label to be placed on them.
+    var predicatePattern = new RegExp("\\w+\\s*\\(","g");
+    var constantPattern = new RegExp("\\'\\w+\\'", "g");
+    var nonVariableLabel = "__0_";
+
+    // Find all instances of predicates and constants in the parent rule
+    let predicates = [...parentRule.matchAll(predicatePattern)];
+    let constants = [...parentRule.matchAll(constantPattern)];
+
+    // Collect indicies for all predicates and constants so we can label them
+    var indicies = []
+    for (var i = 0; i < predicates.length; i++) {
+        indicies.push(predicates[i].index);
+    }
+    for (var i = 0; i < constants.length; i++) {
+        indicies.push(constants[i].index + 1)
+    }
+
+    // Sort in descending order so we can place labels with collected indicies
+    indicies = indicies.sort((a, b) => b - a);
+
+    // Apply the labels to a copy of the parent rule
+    var createdGroundRule = parentRule;
+    for (var i = 0; i < indicies.length; i++) {
+        var index = indicies[i];
+        createdGroundRule = createdGroundRule.slice(0, index)
+                            + nonVariableLabel + createdGroundRule.slice(index);
+    }
+
+    // Replace all variables in the labeled parent rule
     for (let [variable, constant] of Object.entries(groundRuleObject["constants"])){
         var re = new RegExp("\\b"+variable+"\\b","g");
         // Add surrounding single quotes to variables
         constant = "\'" + constant + "\'";
-        parentRule = parentRule.replace(re, constant);
+        createdGroundRule = createdGroundRule.replace(re, constant);
     }
 
+    //Get rid of all labels
+    var replaceLabelsPattern = new RegExp(nonVariableLabel,"g");
+    createdGroundRule = createdGroundRule.replace(replaceLabelsPattern, "");
+
     return {
-        "Ground Rule" : parentRule,
+        "Ground Rule" : createdGroundRule,
         "Dissatisfaction" : groundRuleObject["dissatisfaction"]
     };
 }
