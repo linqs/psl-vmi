@@ -247,7 +247,7 @@ function createTruthTable(data) {
     // Create table
     const predictionTruthCols = ['Predicate', 'Prediction','Truth',
         'Difference'];
-    createTable(truthObjectList, predictionTruthCols, 'Truth Table', 
+    createTable(truthObjectList, predictionTruthCols, 'Truth Table',
         "module-truth-table");
 }
 
@@ -493,6 +493,8 @@ function createGroundRule(data, groundRuleID) {
 
     for (let [variable, constant] of Object.entries(groundRuleObject["constants"])){
         var re = new RegExp("\\b"+variable+"\\b","g");
+        // Add surrounding single quotes to variables
+        constant = "\'" + constant + "\'";
         parentRule = parentRule.replace(re, constant);
     }
 
@@ -530,7 +532,7 @@ function init(data) {
     let satData = readSatisfactionData(overallRuleData);
     setupBarChartModule(satData, DEF_BAR_CHART_X_LABEL,
         DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
-        RULE_SATISFACTION_MODULE, "Rule Compatability", 
+        RULE_SATISFACTION_MODULE, "Rule Compatability",
         "module-compatability-chart");
 
     // Rule Count Module
