@@ -583,17 +583,7 @@ function createGroundRule(data, groundRuleID) {
 function init(data) {
     console.log(data);
 
-    // Convert all ObjectID keys into ints
-    var numKeys = d3.keys(data).length
-    for (var i = 0; i < numKeys; i++) {
-        var key = d3.keys(data)[i];
-        if (!isNaN(key)) {
-            var data_copy = data[key];
-            data[parseInt(key)] = data_copy;
-            delete data[key];
-        }
-    }
-
+    // Create the context navigation bar
     createNavBar()
 
     // Compute all needed rule data and put into one object;
