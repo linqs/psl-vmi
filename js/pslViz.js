@@ -230,6 +230,34 @@ function createTable(data, columns, title, className) {
   return table;
 }
 
+function createNavBar() {
+    var div = d3.select('.psl-viz').append('div');
+    div.classed("navbar", true);
+
+    // Add anchor points to the div
+    var mydiv = document.getElementsByClassName("navbar")[0];
+    var aTag = document.createElement('a');
+    aTag.classList.add("navbar-model-context");
+    aTag.setAttribute('href',"#Model Context");
+    aTag.innerText = "Model Context";
+    mydiv.appendChild(aTag);
+
+    // When the user scrolls the page, execute myFunction
+    window.onscroll = function() {myFunction()};
+
+    // Add the sticky class to the navbar when you reach its scroll position. Remove "sticky" when you leave the scroll position
+    function myFunction() {
+        var navbar = document.getElementsByClassName("navbar")[0];
+        var sticky = navbar.offsetTop;
+        if (window.pageYOffset >= sticky) {
+            navbar.classList.add("sticky")
+        }
+        else {
+            navbar.classList.remove("sticky");
+        }
+    }
+}
+
 // TODO: Better way to grab from JSON then what these functions do??
 function createTruthTable(data) {
     // Find the correct data
@@ -418,6 +446,20 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
         associatedTableDiv[0].remove();
     }
 
+    // Grab navbar
+    var navbar = document.getElementsByClassName("navbar")[0];
+    // Remove context atom
+    var navElem = navbar.getElementsByClassName("navbar-ground-atom-context");
+    if (navElem.length != 0) {
+        navElem[0].remove();
+    }
+    // update navbar with new atom context
+    var aTag = document.createElement('a');
+    aTag.classList.add("navbar-ground-atom-context");
+    aTag.setAttribute('href',"#Ground Atom Context");
+    aTag.innerText = data["groundAtoms"][groundAtom]["text"];
+    navbar.appendChild(aTag);
+
     // Create associtated ground rules list
     var groundRuleObject = data["groundRules"];
     var associatedGroundRules = [];
@@ -551,6 +593,8 @@ function init(data) {
             delete data[key];
         }
     }
+
+    createNavBar()
 
     // Compute all needed rule data and put into one object;
     var overallRuleData = computeRuleData(data, undefined);
