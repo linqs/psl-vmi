@@ -210,7 +210,14 @@ function createTable(data, columns, title, className) {
         .data(data)
         .enter()
         .append('tr')
-        .attr('data-atom', function(atom) { return atom.id; });
+    // TODO: Right now this is how im handling two tables that require
+    // different functionallity on row click. Perhaps this should be changed?
+    if (className == GROUND_ATOM_RULES_MODULE) {
+        rows.attr('data-rule', function (row) { return row.id; });
+    }
+    else if (className == TRUTH_TABLE_MODULE) {
+        rows.attr('data-atom', function(atom) { return atom.id; });
+    }
 
 	// create a cell in each row for each column
 	var cells = rows.selectAll('td')
@@ -239,7 +246,7 @@ function createNavBar() {
     var aTag = document.createElement('a');
     aTag.classList.add("navbar-model-context");
     aTag.setAttribute('href',"#Model Context");
-    aTag.innerText = "Model Context";
+    aTag.innerText = "Model";
     mydiv.appendChild(aTag);
 
     // When the user scrolls the page, execute myFunction
@@ -448,10 +455,14 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
 
     // Grab navbar
     var navbar = document.getElementsByClassName("navbar")[0];
-    // Remove context atom
-    var navElem = navbar.getElementsByClassName("navbar-ground-atom-context");
-    if (navElem.length != 0) {
-        navElem[0].remove();
+    // Remove context atom and rule if one exists
+    var navAtomElem = navbar.getElementsByClassName("navbar-ground-atom-context");
+    var navRuleElem = navbar.getElementsByClassName("navbar-ground-rule-context");
+    if (navAtomElem.length != 0) {
+        navAtomElem[0].remove();
+    }
+    if (navRuleElem.length != 0) {
+        navRuleElem[0].remove();
     }
     // update navbar with new atom context
     var aTag = document.createElement('a');
@@ -477,12 +488,35 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     // Add tablesorter to this new table
     $(`.viz-module table.tablesorter`).tablesorter();
 
+    // Add context watcher / updater to this table
+    $('*[data-rule]').click(function() {
+        updateGroundRuleContext(data, this.dataset.rule);
+    });
+
     // Create Compatibility Chart with Ground Atom Context
     let barChartTitle = data["groundAtoms"][groundAtom]["text"] + " " +
         RULE_SATISFACTION_CHART_TITLE;
     setupBarChartModule(groundAtomSatData, DEF_BAR_CHART_X_LABEL,
         DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
         GROUND_ATOM_SATISFACTION_MODULE, barChartTitle);
+}
+
+function updateGroundRuleContext(data, groundRuleKeyString) {
+    // convert rule string id to int id
+    const groundRuleID = parseInt(groundRuleKeyString);
+    // Grab navbar
+    var navbar = document.getElementsByClassName("navbar")[0];
+    // Remove context rule
+    var navRuleElem = navbar.getElementsByClassName("navbar-ground-rule-context");
+    if (navRuleElem.length != 0) {
+        navRuleElem[0].remove();
+    }
+    // update navbar with new rule context
+    var aTag = document.createElement('a');
+    aTag.classList.add("navbar-ground-rule-context");
+    aTag.setAttribute('href',"#Ground Rule Context");
+    aTag.innerText = createGroundRule(data, groundRuleID)["Ground Rule"];
+    navbar.appendChild(aTag);
 }
 
 function createMenu(options, defaultValue, moduleName, div) {
@@ -576,7 +610,8 @@ function createGroundRule(data, groundRuleID) {
 
     return {
         "Ground Rule" : createdGroundRule,
-        "Dissatisfaction" : groundRuleObject["dissatisfaction"]
+        "Dissatisfaction" : groundRuleObject["dissatisfaction"],
+        "id" : groundRuleID
     };
 }
 

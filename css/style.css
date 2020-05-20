@@ -138,3 +138,7 @@ rect.mover {
 [data-atom] {
     cursor: pointer;
 }
+
+[data-rule] {
+    cursor: pointer;
+}
