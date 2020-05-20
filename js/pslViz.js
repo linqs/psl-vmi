@@ -29,10 +29,10 @@ const RULE_SATISFACTION_CHART_TITLE = "Rule Compatability";
 const DEF_BAR_CHART_X_LABEL = "Rule";
 const DEF_SATISFACTION_Y_LABEL = "Total Satisfaction";
 const SATISFACTION_Y_LABELS = [
-    {"text": "Total Satisfaction",   "value": "Total Satisfaction"},
-    {"text": "Mean Satisfaction",    "value": "Mean Satisfaction"},
-    {"text": "Total Dissatisfaction", "value": "Total Dissatisfaction"},
-    {"text": "Mean Dissatisfaction",  "value": "Mean Dissatisfaction"}
+    "Total Satisfaction",
+    "Mean Satisfaction",
+    "Total Dissatisfaction",
+    "Mean Dissatisfaction"
 ];
 
 function updateBarChart(chart, data, newYVal) {
@@ -73,7 +73,7 @@ function transformBarChart(chart, barData) {
         .attr("width", chart.xScale.rangeBand())
         .attr("y", function(row) { return chart.yScale(row.value); })
         .attr("height", function(row) { return chart.innerHeight -
-            chart.yScale(row.value);
+                chart.yScale(row.value);
         });
 }
 
@@ -163,7 +163,7 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
         .attr("width", xScale.rangeBand())
         .attr("y", function(row) { return yScale(row.value); })
         .attr("height", function(row) { return innerHeight -
-            yScale(row.value);
+                yScale(row.value);
         });
 
     return {
@@ -252,7 +252,8 @@ function createNavBar() {
     // When the user scrolls the page, execute myFunction
     window.onscroll = function() {myFunction()};
 
-    // Add the sticky class to the navbar when you reach its scroll position. Remove "sticky" when you leave the scroll position
+    // Add the sticky class to the navbar when you reach its scroll position.
+    // Remove "sticky" when you leave the scroll position
     function myFunction() {
         var navbar = document.getElementsByClassName("navbar")[0];
         var sticky = navbar.offsetTop;
@@ -275,16 +276,16 @@ function createTruthTable(data) {
             "Truth": data["truthMap"][key].toFixed(2),
             "Predicate": data["groundAtoms"][key]["text"],
             "Difference" : Math.abs(data["truthMap"][key] -
-                data["groundAtoms"][key]["prediction"]).toFixed(2),
+                    data["groundAtoms"][key]["prediction"]).toFixed(2),
             "id": key,
         }
         truthObjectList.push(truthObject);
     }
     // Create table
     const predictionTruthCols = ['Predicate', 'Prediction','Truth',
-        'Difference'];
+            'Difference'];
     createTable(truthObjectList, predictionTruthCols, TRUTH_TABLE_TITLE,
-        TRUTH_TABLE_MODULE);
+            TRUTH_TABLE_MODULE);
 }
 
 function createViolationTable(data) {
@@ -312,12 +313,12 @@ function createViolationTable(data) {
     // Create table
     const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
     createTable(violationObjectList, violatedGroundRulesCols,
-        VIOLATED_GROUND_RULES_TABLE_TITLE, VIOLATED_GROUND_RULES_MODULE);
+            VIOLATED_GROUND_RULES_TABLE_TITLE, VIOLATED_GROUND_RULES_MODULE);
 }
 
-//Create a table that gives an overview for all rules
+// Create a table that gives an overview for all rules
 function createRuleOverviewTable(data) {
-    //Bring Sat/Dis data to 2nd decimal place and gather all rule data
+    // Bring Sat/Dis data to 2nd decimal place and gather all rule data
     var overviewData = [];
     for (var i = 0; i < data.length; i++) {
         var rule = data[i];
@@ -332,9 +333,9 @@ function createRuleOverviewTable(data) {
         overviewData.push(ruleData);
     }
     const overviewCols = ["ID", "Rule", "Weighted", "Count",
-        "Total Dissatisfaction", "Mean Dissatisfaction"];
+            "Total Dissatisfaction", "Mean Dissatisfaction"];
     createTable(overviewData, overviewCols, RULE_OVERVIEW_TABLE_TITLE,
-        RULE_OVERVIEW_MODULE);
+            RULE_OVERVIEW_MODULE);
 }
 
 function exists(container, item) {
@@ -375,7 +376,7 @@ function computeRuleData(data, groundAtom) {
                     const groundAtoms = groundRules[groundRule]["groundAtoms"];
                     if ( exists(groundAtoms, groundAtom) ) {
                         totSat += 1 -
-                            groundRules[groundRule]["dissatisfaction"];
+                                groundRules[groundRule]["dissatisfaction"];
                         totDis += groundRules[groundRule]["dissatisfaction"];
                         groundRuleCount++;
                     }
@@ -440,15 +441,9 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     let SatData = computeRuleData(data, groundAtom);
     let groundAtomSatData = readSatisfactionData(SatData);
 
-    let groundAtomBarChartDiv = document.getElementsByClassName(DIV_CLASS +
-        " " + GROUND_ATOM_SATISFACTION_MODULE);
-    if (groundAtomBarChartDiv.length != 0) {
-        groundAtomBarChartDiv[0].remove();
-    }
-
     // Get rid of the old associated rules table via class name
     var associatedTableDiv = document.getElementsByClassName(DIV_CLASS +
-        " " + GROUND_ATOM_RULES_MODULE);
+            " " + GROUND_ATOM_RULES_MODULE);
     if (associatedTableDiv.length != 0) {
         associatedTableDiv[0].remove();
     }
@@ -480,10 +475,10 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
         }
     }
     let tableTitle = data["groundAtoms"][groundAtom]["text"] + " " +
-        ASSOCIATED_GROUND_RULES_TABLE_TITLE;
+            ASSOCIATED_GROUND_RULES_TABLE_TITLE;
     const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
     createTable(associatedGroundRules, associatedGroundRuleCols, tableTitle,
-        GROUND_ATOM_RULES_MODULE);
+            GROUND_ATOM_RULES_MODULE);
 
     // Add tablesorter to this new table
     $(`.viz-module table.tablesorter`).tablesorter();
@@ -495,10 +490,10 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
 
     // Create Compatibility Chart with Ground Atom Context
     let barChartTitle = data["groundAtoms"][groundAtom]["text"] + " " +
-        RULE_SATISFACTION_CHART_TITLE;
+            RULE_SATISFACTION_CHART_TITLE;
     setupBarChartModule(groundAtomSatData, DEF_BAR_CHART_X_LABEL,
-        DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
-        GROUND_ATOM_SATISFACTION_MODULE, barChartTitle);
+            DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
+            GROUND_ATOM_SATISFACTION_MODULE, barChartTitle);
 }
 
 function updateGroundRuleContext(data, groundRuleKeyString) {
@@ -528,10 +523,9 @@ function createMenu(options, defaultValue, moduleName, div) {
     var index = 0;
     while ( index < options.length ) {
         var menuOption = document.createElement("option");
-        menuOption.text = options[index].text;
-        menuOption.value = options[index].value;
+        menuOption.text = options[index];
         menu.options.add(menuOption);
-        if ( defaultValue != undefined && options[index] == defaultValue ) {
+        if ( options[index] == defaultValue ) {
             menu.options.selectedIndex = index;
         }
         index++;
@@ -541,6 +535,11 @@ function createMenu(options, defaultValue, moduleName, div) {
 
 function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
         className, title) {
+    let oldModule = document.getElementsByClassName(DIV_CLASS + " " +
+            className);
+    if ( oldModule.length != 0 ) {
+        oldModule[0].remove();
+    }
     var div = d3.select(DIV_NAME).append("div");
     div.classed(DIV_CLASS, true);
 
@@ -567,7 +566,8 @@ function createGroundRule(data, groundRuleID) {
     var groundRuleObject = data["groundRules"][groundRuleID];
     var parentRule = data["rules"][groundRuleObject["ruleID"]]["text"];
 
-    // Create patterns to find predicate / constants and label to be placed on them.
+    // Create patterns to find predicate / constants and label to be placed
+    // on them.
     var predicatePattern = new RegExp("\\w+\\s*\\(","g");
     var constantPattern = new RegExp("\\'\\w+\\'", "g");
     var nonVariableLabel = "__0_";
@@ -593,18 +593,19 @@ function createGroundRule(data, groundRuleID) {
     for (var i = 0; i < indicies.length; i++) {
         var index = indicies[i];
         createdGroundRule = createdGroundRule.slice(0, index)
-                            + nonVariableLabel + createdGroundRule.slice(index);
+                + nonVariableLabel + createdGroundRule.slice(index);
     }
 
     // Replace all variables in the labeled parent rule
-    for (let [variable, constant] of Object.entries(groundRuleObject["constants"])){
+    let varConstList = Object.entries(groundRuleObject["constants"]);
+    for (let [variable, constant] of varConstList) {
         var re = new RegExp("\\b"+variable+"\\b","g");
         // Add surrounding single quotes to variables
         constant = "\'" + constant + "\'";
         createdGroundRule = createdGroundRule.replace(re, constant);
     }
 
-    //Get rid of all labels
+    // Get rid of all labels
     var replaceLabelsPattern = new RegExp(nonVariableLabel,"g");
     createdGroundRule = createdGroundRule.replace(replaceLabelsPattern, "");
 
@@ -634,14 +635,14 @@ function init(data) {
     // Satisfaction Module
     let satData = readSatisfactionData(overallRuleData);
     setupBarChartModule(satData, DEF_BAR_CHART_X_LABEL,
-        DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
-        RULE_SATISFACTION_MODULE, RULE_SATISFACTION_CHART_TITLE);
+            DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
+            RULE_SATISFACTION_MODULE, RULE_SATISFACTION_CHART_TITLE);
 
     // Rule Count Module
     let ruleCountData = readRuleCountData(overallRuleData);
     setupBarChartModule(ruleCountData, DEF_BAR_CHART_X_LABEL,
-        RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE,
-        RULE_COUNT_CHART_TITLE);
+            RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE,
+            RULE_COUNT_CHART_TITLE);
 
     // Set context handlers.
     $('*[data-atom]').click(function() {
