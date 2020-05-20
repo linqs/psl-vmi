@@ -28,10 +28,12 @@ th {
 
 /* Style the navbar */
 .navbar {
+  position: fixed;
   overflow: hidden;
   top: 0;
   width: 100%;
   background-color: #333;
+  height: 50px;
 }
 
 /* Navbar links */
@@ -42,16 +44,6 @@ th {
   text-align: center;
   padding: 14px;
   text-decoration: none;
-}
-
-/* The sticky class is added to the navbar with JS when it reaches its scroll position */
-.sticky {
-  position: fixed;
-}
-
-/* Add some top padding to the page content to prevent sudden quick movement (as the navigation bar gets a new position at the top of the page (position:fixed and top:0) */
-.sticky + .content {
-  padding-top: 60px;
 }
 
 .bar {
@@ -89,6 +81,7 @@ rect.mover {
     height: 100%;
     width: 100%;
 
+    padding-top: 50px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
