@@ -311,10 +311,14 @@ function createViolationTable(data) {
             }
         }
     }
-    // Create table
-    const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
-    createTable(violationObjectList, violatedGroundRulesCols,
-            VIOLATED_GROUND_RULES_TABLE_TITLE, VIOLATED_GROUND_RULES_MODULE);
+
+
+    // Create table if there are violated constraints
+    if (violationObjectList.length != 0) {
+        const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
+        createTable(violationObjectList, violatedGroundRulesCols,
+                VIOLATED_GROUND_RULES_TABLE_TITLE, VIOLATED_GROUND_RULES_MODULE);
+    }
 }
 
 // Create a table that gives an overview for all rules
@@ -380,7 +384,6 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
         atomElementList.push(tableElem);
     }
     let tableTitle = createGroundRule(data, groundRuleID)["Ground Rule"];
-    console.log(tableTitle);
     const atomCols = ["Ground Atom", "Truth Value"];
     createTable(atomElementList, atomCols, tableTitle,
             INDIVIDUAL_GROUND_RULE_MODULE);
@@ -392,8 +395,6 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
     var individualGroundRuleTable = document.getElementsByClassName(DIV_CLASS +
             " " + INDIVIDUAL_GROUND_RULE_MODULE)[0];
     var containerDiv = individualGroundRuleTable.getElementsByClassName("table-container")[0];
-    console.log(individualGroundRuleTable);
-    console.log(containerDiv);
     var aTag = document.createElement('a');
     aTag.innerText = "Rule Satisfaction: " + (1-groundRule["dissatisfaction"]);
     individualGroundRuleTable.insertBefore(aTag, containerDiv);
