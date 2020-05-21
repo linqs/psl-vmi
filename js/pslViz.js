@@ -21,6 +21,7 @@ const VIOLATED_GROUND_RULES_TABLE_TITLE = "Violated Constraints";
 const GROUND_ATOM_SATISFACTION_MODULE ="module-ground-atom-compatability-chart";
 const GROUND_ATOM_RULES_MODULE = "module-associated-rules-table";
 const ASSOCIATED_GROUND_RULES_TABLE_TITLE = "Associated Ground Rules";
+const INDIVIDUAL_GROUND_RULE_MODULE = "module-individual-ground-rule-table";
 const RULE_COUNT_MODULE = "module-rulecount-chart";
 const RULE_COUNT_Y_LABEL = "Count";
 const RULE_COUNT_CHART_TITLE = "Ground Rule Count";
@@ -512,6 +513,43 @@ function updateGroundRuleContext(data, groundRuleKeyString) {
     aTag.setAttribute('href',"#Ground Rule Context");
     aTag.innerText = createGroundRule(data, groundRuleID)["Ground Rule"];
     navbar.appendChild(aTag);
+
+    // Get rid of the old individual rule table via class name
+    var individualRuleTableDiv = document.getElementsByClassName(DIV_CLASS +
+            " " + "module-individual-ground-rule-table");
+    if (individualRuleTableDiv.length != 0) {
+        individualRuleTableDiv[0].remove();
+    }
+
+    var groundAtomObject = data["groundAtoms"];
+    var groundRule = data["groundRules"][groundRuleKeyString];
+
+    atomElementList = []
+    for (var i = 0; i < groundRule["groundAtoms"].length; i++) {
+        var atomID  = groundRule["groundAtoms"][i];
+        var tableElem = {
+            "Ground Atom" : groundAtomObject[atomID]["text"],
+            "Truth Value" : groundAtomObject[atomID]["prediction"]
+        }
+        atomElementList.push(tableElem);
+    }
+    let tableTitle = createGroundRule(data, groundRuleID)["Ground Rule"];
+    const atomCols = ["Ground Atom", "Truth Value"];
+    createTable(atomElementList, atomCols, tableTitle,
+            INDIVIDUAL_GROUND_RULE_MODULE);
+
+    // Add tablesorter to this new table
+    $(`.viz-module table.tablesorter`).tablesorter();
+
+    // Insert Satisfaction value as a DOM element
+    var individualGroundRuleTable = document.getElementsByClassName(DIV_CLASS +
+            " " + INDIVIDUAL_GROUND_RULE_MODULE)[0];
+    var containerDiv = individualGroundRuleTable.getElementsByClassName("table-container")[0];
+    console.log(individualGroundRuleTable);
+    console.log(containerDiv);
+    var aTag = document.createElement('a');
+    aTag.innerText = "Rule Satisfaction: " + (1-groundRule["dissatisfaction"]);
+    individualGroundRuleTable.insertBefore(aTag, containerDiv);
 }
 
 function createMenu(options, defaultValue, moduleName, div) {
