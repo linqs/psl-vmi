@@ -12,13 +12,16 @@ const BAR_CHART_TRANSITION_DURATION = 1000;
 const DIV_NAME = ".psl-viz";
 const DIV_CLASS = "viz-module";
 
+const NAVBAR_MODEL_CONTEXT_CHANGER = "navbar-model-context";
+const NAVBAR_GROUND_ATOM_CONTEXT_CHANGER = "navbar-ground-atom-context";
+const NAVBAR_GROUND_RULE_CONTEXT_CHANGER = "navbar-ground-rule-context";
 const RULE_OVERVIEW_MODULE = "module-overview-table";
 const RULE_OVERVIEW_TABLE_TITLE = "Rule Overview";
 const TRUTH_TABLE_MODULE = "module-truth-table";
 const TRUTH_TABLE_TITLE = "Truth Table";
 const VIOLATED_GROUND_RULES_MODULE = "module-violation-table";
 const VIOLATED_GROUND_RULES_TABLE_TITLE = "Violated Constraints";
-const GROUND_ATOM_SATISFACTION_MODULE ="module-ground-atom-compatability-chart";
+const GROUND_ATOM_SATISFACTION_MODULE = "module-ground-atom-compatability-chart";
 const GROUND_ATOM_RULES_MODULE = "module-associated-rules-table";
 const ASSOCIATED_GROUND_RULES_TABLE_TITLE = "Associated Ground Rules";
 const RULE_COUNT_MODULE = "module-rulecount-chart";
@@ -244,7 +247,7 @@ function createNavBar() {
     // Add anchor points to the div
     var mydiv = document.getElementsByClassName("navbar")[0];
     var aTag = document.createElement('a');
-    aTag.classList.add("navbar-model-context");
+    aTag.classList.add(NAVBAR_MODEL_CONTEXT_CHANGER);
     aTag.setAttribute('href',"#Model Context");
     aTag.innerText = "Model";
     mydiv.appendChild(aTag);
@@ -263,6 +266,45 @@ function createNavBar() {
         else {
             navbar.classList.remove("sticky");
         }
+    }
+}
+
+function modelContextChangeHandler() {
+    // Show all model context modules, then remove ground atom and
+    // ground rule modules.
+    $("." + RULE_SATISFACTION_MODULE).show();
+    $("." + RULE_COUNT_MODULE).show();
+    $("." + VIOLATED_GROUND_RULES_MODULE).show();
+    removeGroundAtomContext();
+    removeGroundRuleContext();
+}
+
+// TODO: This function currently only removes the ground rule displayed 
+// on the navbar, when ground rule context module is implemented in must also
+// remove the ground rule module 
+function removeGroundRuleContext() {
+    let groundRuleContextChanger = document.getElementsByClassName(
+            NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
+    if (groundRuleContextChanger.length != 0) {
+        groundRuleContextChanger[0].remove();
+    }
+}
+
+function removeGroundAtomContext() {
+    let groundAtomCompatability = document.getElementsByClassName(
+            GROUND_ATOM_SATISFACTION_MODULE);
+    let groundAtomAssociatedRules = document.getElementsByClassName(
+            GROUND_ATOM_RULES_MODULE);
+    let groundAtomContextChanger = document.getElementsByClassName(
+            NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
+    if (groundAtomCompatability.length != 0) {
+        groundAtomCompatability[0].remove();
+    }
+    if (groundAtomAssociatedRules.length != 0) {
+        groundAtomAssociatedRules[0].remove();
+    }
+    if (groundAtomContextChanger.length != 0) {
+        groundAtomContextChanger[0].remove();
     }
 }
 
@@ -436,14 +478,21 @@ function readRuleCountData(data) {
     return ruleCountData;
 }
 
+function groundAtomContextHandler(data, groundAtom) {
+    $("." + RULE_SATISFACTION_MODULE).hide();
+    $("." + RULE_COUNT_MODULE).hide();
+    $("." + VIOLATED_GROUND_RULES_MODULE).hide();
+    updateGroundAtomContext(data, groundAtom);
+}
+
 function updateGroundAtomContext(data, groundAtomKeyString) {
     const groundAtom = parseInt(groundAtomKeyString);
     let SatData = computeRuleData(data, groundAtom);
     let groundAtomSatData = readSatisfactionData(SatData);
 
     // Get rid of the old associated rules table via class name
-    var associatedTableDiv = document.getElementsByClassName(DIV_CLASS +
-            " " + GROUND_ATOM_RULES_MODULE);
+    var associatedTableDiv = document.getElementsByClassName(
+            GROUND_ATOM_RULES_MODULE);
     if (associatedTableDiv.length != 0) {
         associatedTableDiv[0].remove();
     }
@@ -451,8 +500,10 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     // Grab navbar
     var navbar = document.getElementsByClassName("navbar")[0];
     // Remove context atom and rule if one exists
-    var navAtomElem = navbar.getElementsByClassName("navbar-ground-atom-context");
-    var navRuleElem = navbar.getElementsByClassName("navbar-ground-rule-context");
+    var navAtomElem = navbar.getElementsByClassName(
+            NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
+    var navRuleElem = navbar.getElementsByClassName(
+            NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
     if (navAtomElem.length != 0) {
         navAtomElem[0].remove();
     }
@@ -461,9 +512,12 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     }
     // update navbar with new atom context
     var aTag = document.createElement('a');
-    aTag.classList.add("navbar-ground-atom-context");
+    aTag.classList.add(NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
     aTag.setAttribute('href',"#Ground Atom Context");
     aTag.innerText = data["groundAtoms"][groundAtom]["text"];
+    aTag.onclick = function() {
+        removeGroundRuleContext();
+    }
     navbar.appendChild(aTag);
 
     // Create associtated ground rules list
@@ -502,13 +556,14 @@ function updateGroundRuleContext(data, groundRuleKeyString) {
     // Grab navbar
     var navbar = document.getElementsByClassName("navbar")[0];
     // Remove context rule
-    var navRuleElem = navbar.getElementsByClassName("navbar-ground-rule-context");
+    var navRuleElem = navbar.getElementsByClassName(
+            NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
     if (navRuleElem.length != 0) {
         navRuleElem[0].remove();
     }
     // update navbar with new rule context
     var aTag = document.createElement('a');
-    aTag.classList.add("navbar-ground-rule-context");
+    aTag.classList.add(NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
     aTag.setAttribute('href',"#Ground Rule Context");
     aTag.innerText = createGroundRule(data, groundRuleID)["Ground Rule"];
     navbar.appendChild(aTag);
@@ -535,8 +590,7 @@ function createMenu(options, defaultValue, moduleName, div) {
 
 function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
         className, title) {
-    let oldModule = document.getElementsByClassName(DIV_CLASS + " " +
-            className);
+    let oldModule = document.getElementsByClassName(className);
     if ( oldModule.length != 0 ) {
         oldModule[0].remove();
     }
@@ -621,6 +675,9 @@ function init(data) {
 
     // Create the context navigation bar
     createNavBar()
+    $("." + NAVBAR_MODEL_CONTEXT_CHANGER).click(function() {
+        modelContextChangeHandler();
+    });
 
     // Compute all needed rule data and put into one object;
     var overallRuleData = computeRuleData(data, undefined);
@@ -646,7 +703,7 @@ function init(data) {
 
     // Set context handlers.
     $('*[data-atom]').click(function() {
-        updateGroundAtomContext(data, this.dataset.atom);
+        groundAtomContextHandler(data, this.dataset.atom);
     });
 }
 
