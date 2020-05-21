@@ -24,6 +24,7 @@ const VIOLATED_GROUND_RULES_TABLE_TITLE = "Violated Constraints";
 const GROUND_ATOM_SATISFACTION_MODULE = "module-ground-atom-compatability-chart";
 const GROUND_ATOM_RULES_MODULE = "module-associated-rules-table";
 const ASSOCIATED_GROUND_RULES_TABLE_TITLE = "Associated Ground Rules";
+const INDIVIDUAL_GROUND_RULE_MODULE = "module-individual-ground-rule-table";
 const RULE_COUNT_MODULE = "module-rulecount-chart";
 const RULE_COUNT_Y_LABEL = "Count";
 const RULE_COUNT_CHART_TITLE = "Ground Rule Count";
@@ -344,7 +345,7 @@ function createViolationTable(data) {
                             //TODO: Constraints seem to never be in groundRules
                             "Violated Constraint": "",
                             "Dissatisfaction":
-                                groundRulesObject[groundRuleID]["dissatisfaction"]
+                                groundRulesObject[groundRuleID]["dissatisfaction"].toFixed(2)
                         };
                         violationObjectList.push(violationObject);
                     }
@@ -352,10 +353,14 @@ function createViolationTable(data) {
             }
         }
     }
-    // Create table
-    const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
-    createTable(violationObjectList, violatedGroundRulesCols,
-            VIOLATED_GROUND_RULES_TABLE_TITLE, VIOLATED_GROUND_RULES_MODULE);
+
+
+    // Create table if there are violated constraints
+    if (violationObjectList.length != 0) {
+        const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
+        createTable(violationObjectList, violatedGroundRulesCols,
+                VIOLATED_GROUND_RULES_TABLE_TITLE, VIOLATED_GROUND_RULES_MODULE);
+    }
 }
 
 // Create a table that gives an overview for all rules
@@ -378,6 +383,63 @@ function createRuleOverviewTable(data) {
             "Total Dissatisfaction", "Mean Dissatisfaction"];
     createTable(overviewData, overviewCols, RULE_OVERVIEW_TABLE_TITLE,
             RULE_OVERVIEW_MODULE);
+}
+
+function createAssociatedGroundAtomsTable(data, groundAtomKeyString) {
+    const groundAtom = parseInt(groundAtomKeyString);
+    // Create associtated ground rules list
+    var groundRuleObject = data["groundRules"];
+    var associatedGroundRules = [];
+    for (groundRuleID in groundRuleObject){
+        if (groundRuleObject[groundRuleID]["groundAtoms"].includes(groundAtom)){
+            associatedGroundRules.push(createGroundRule(data, groundRuleID))
+        }
+    }
+    let tableTitle = data["groundAtoms"][groundAtom]["text"] + " " +
+            ASSOCIATED_GROUND_RULES_TABLE_TITLE;
+    const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
+    createTable(associatedGroundRules, associatedGroundRuleCols, tableTitle,
+            GROUND_ATOM_RULES_MODULE);
+
+    // Add tablesorter to this new table
+    $(`.viz-module table.tablesorter`).tablesorter();
+
+    // Add context watcher / updater to this table
+    $('*[data-rule]').click(function() {
+        updateGroundRuleContext(data, this.dataset.rule);
+    });
+}
+
+function createIndividualGroundRuleTable(data, groundRuleKeyString) {
+    // convert rule string id to int id
+    const groundRuleID = parseInt(groundRuleKeyString);
+    var groundAtomObject = data["groundAtoms"];
+    var groundRule = data["groundRules"][groundRuleKeyString];
+
+    atomElementList = []
+    for (var i = 0; i < groundRule["groundAtoms"].length; i++) {
+        var atomID  = groundRule["groundAtoms"][i];
+        var tableElem = {
+            "Ground Atom" : groundAtomObject[atomID]["text"],
+            "Truth Value" : groundAtomObject[atomID]["prediction"].toFixed(2)
+        }
+        atomElementList.push(tableElem);
+    }
+    let tableTitle = createGroundRule(data, groundRuleID)["Ground Rule"];
+    const atomCols = ["Ground Atom", "Truth Value"];
+    createTable(atomElementList, atomCols, tableTitle,
+            INDIVIDUAL_GROUND_RULE_MODULE);
+
+    // Add tablesorter to this new table
+    $(`.viz-module table.tablesorter`).tablesorter();
+
+    // Insert Satisfaction value as a DOM element
+    var individualGroundRuleTable = document.getElementsByClassName(DIV_CLASS +
+            " " + INDIVIDUAL_GROUND_RULE_MODULE)[0];
+    var containerDiv = individualGroundRuleTable.getElementsByClassName("table-container")[0];
+    var aTag = document.createElement('a');
+    aTag.innerText = "Rule Satisfaction: " + (1-groundRule["dissatisfaction"]).toFixed(2);
+    individualGroundRuleTable.insertBefore(aTag, containerDiv);
 }
 
 function exists(container, item) {
@@ -510,6 +572,13 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     if (navRuleElem.length != 0) {
         navRuleElem[0].remove();
     }
+    // Remove individual ground rule table if it exists
+    var individualGroundRuleDiv = document.getElementsByClassName(DIV_CLASS +
+            " " + INDIVIDUAL_GROUND_RULE_MODULE);
+    if (individualGroundRuleDiv.length != 0) {
+        individualGroundRuleDiv[0].remove();
+    }
+
     // update navbar with new atom context
     var aTag = document.createElement('a');
     aTag.classList.add(NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
@@ -520,27 +589,8 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     }
     navbar.appendChild(aTag);
 
-    // Create associtated ground rules list
-    var groundRuleObject = data["groundRules"];
-    var associatedGroundRules = [];
-    for (groundRuleID in groundRuleObject){
-        if (groundRuleObject[groundRuleID]["groundAtoms"].includes(groundAtom)){
-            associatedGroundRules.push(createGroundRule(data, groundRuleID))
-        }
-    }
-    let tableTitle = data["groundAtoms"][groundAtom]["text"] + " " +
-            ASSOCIATED_GROUND_RULES_TABLE_TITLE;
-    const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
-    createTable(associatedGroundRules, associatedGroundRuleCols, tableTitle,
-            GROUND_ATOM_RULES_MODULE);
-
-    // Add tablesorter to this new table
-    $(`.viz-module table.tablesorter`).tablesorter();
-
-    // Add context watcher / updater to this table
-    $('*[data-rule]').click(function() {
-        updateGroundRuleContext(data, this.dataset.rule);
-    });
+    // Create new associated ground rules table
+    createAssociatedGroundAtomsTable(data, groundAtomKeyString)
 
     // Create Compatibility Chart with Ground Atom Context
     let barChartTitle = data["groundAtoms"][groundAtom]["text"] + " " +
@@ -551,8 +601,6 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
 }
 
 function updateGroundRuleContext(data, groundRuleKeyString) {
-    // convert rule string id to int id
-    const groundRuleID = parseInt(groundRuleKeyString);
     // Grab navbar
     var navbar = document.getElementsByClassName("navbar")[0];
     // Remove context rule
@@ -567,6 +615,16 @@ function updateGroundRuleContext(data, groundRuleKeyString) {
     aTag.setAttribute('href',"#Ground Rule Context");
     aTag.innerText = createGroundRule(data, groundRuleID)["Ground Rule"];
     navbar.appendChild(aTag);
+
+    // Get rid of the old individual rule table via class name
+    var individualRuleTableDiv = document.getElementsByClassName(DIV_CLASS +
+            " " + "module-individual-ground-rule-table");
+    if (individualRuleTableDiv.length != 0) {
+        individualRuleTableDiv[0].remove();
+    }
+
+    // Create new individual ground rule
+    createIndividualGroundRuleTable(data, groundRuleKeyString);
 }
 
 function createMenu(options, defaultValue, moduleName, div) {
@@ -665,7 +723,7 @@ function createGroundRule(data, groundRuleID) {
 
     return {
         "Ground Rule" : createdGroundRule,
-        "Dissatisfaction" : groundRuleObject["dissatisfaction"],
+        "Dissatisfaction" : groundRuleObject["dissatisfaction"].toFixed(2),
         "id" : groundRuleID
     };
 }

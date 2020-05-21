@@ -26,6 +26,15 @@ th {
     height: 50px;
 }
 
+/* Navbar links */
+.psl-viz .module-individual-ground-rule-table a {
+  display: block;
+  text-decoration: none;
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
 /* Style the navbar */
 .navbar {
   position: fixed;
@@ -106,10 +115,12 @@ rect.mover {
 .psl-viz .module-overview-table {order: 10;} /*rule overview table*/
 .psl-viz .module-compatability-chart {order: 20;} /*Compatability chart*/
 .psl-viz .module-rulecount-chart {order: 30;} /*rule count chart*/
-.psl-viz .module-truth-table {order: 40;} /*truth table*/
-.psl-viz .module-ground-atom-compatability-chart {order: 50;}/*ground atom compatability */
-.psl-viz .module-associated-rules-table {order: 60;} /*associated ground rules per atom*/
-.psl-viz .module-violation-table {order: 70;} /*violation table*/
+.psl-viz .module-violation-table {order: 40;} /*violation table*/
+.psl-viz .module-truth-table {order: 50;} /*truth table*/
+.psl-viz .module-ground-atom-compatability-chart {order: 60;}/*ground atom compatability */
+.psl-viz .module-associated-rules-table {order: 70;} /*associated ground rules per atom*/
+.psl-viz .module-individual-ground-rule-table {order: 80;} /* individual ground rule table */
+
 
 .viz-module select {
     display: block;
