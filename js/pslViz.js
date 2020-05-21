@@ -280,14 +280,16 @@ function modelContextChangeHandler() {
     removeGroundRuleContext();
 }
 
-// TODO: This function currently only removes the ground rule displayed 
-// on the navbar, when ground rule context module is implemented in must also
-// remove the ground rule module 
 function removeGroundRuleContext() {
     let groundRuleContextChanger = document.getElementsByClassName(
             NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
+    let groundRuleSatisfaction = document.getElementsByClassName(
+            INDIVIDUAL_GROUND_RULE_MODULE);
     if (groundRuleContextChanger.length != 0) {
         groundRuleContextChanger[0].remove();
+    }
+    if (groundRuleSatisfaction.length != 0) {
+        groundRuleSatisfaction[0].remove();
     }
 }
 
@@ -357,9 +359,11 @@ function createViolationTable(data) {
 
     // Create table if there are violated constraints
     if (violationObjectList.length != 0) {
-        const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
+        const violatedGroundRulesCols = ['Violated Constraint',
+                'Dissatisfaction'];
         createTable(violationObjectList, violatedGroundRulesCols,
-                VIOLATED_GROUND_RULES_TABLE_TITLE, VIOLATED_GROUND_RULES_MODULE);
+                VIOLATED_GROUND_RULES_TABLE_TITLE,
+                VIOLATED_GROUND_RULES_MODULE);
     }
 }
 
@@ -434,11 +438,13 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
     $(`.viz-module table.tablesorter`).tablesorter();
 
     // Insert Satisfaction value as a DOM element
-    var individualGroundRuleTable = document.getElementsByClassName(DIV_CLASS +
-            " " + INDIVIDUAL_GROUND_RULE_MODULE)[0];
-    var containerDiv = individualGroundRuleTable.getElementsByClassName("table-container")[0];
+    var individualGroundRuleTable = document.getElementsByClassName(
+            INDIVIDUAL_GROUND_RULE_MODULE)[0];
+    var containerDiv = individualGroundRuleTable.getElementsByClassName(
+            "table-container")[0];
     var aTag = document.createElement('a');
-    aTag.innerText = "Rule Satisfaction: " + (1-groundRule["dissatisfaction"]).toFixed(2);
+    aTag.innerText = "Rule Satisfaction: " +
+            (1 - groundRule["dissatisfaction"]).toFixed(2);
     individualGroundRuleTable.insertBefore(aTag, containerDiv);
 }
 
@@ -573,8 +579,8 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
         navRuleElem[0].remove();
     }
     // Remove individual ground rule table if it exists
-    var individualGroundRuleDiv = document.getElementsByClassName(DIV_CLASS +
-            " " + INDIVIDUAL_GROUND_RULE_MODULE);
+    var individualGroundRuleDiv = document.getElementsByClassName(
+            INDIVIDUAL_GROUND_RULE_MODULE);
     if (individualGroundRuleDiv.length != 0) {
         individualGroundRuleDiv[0].remove();
     }
@@ -613,12 +619,12 @@ function updateGroundRuleContext(data, groundRuleKeyString) {
     var aTag = document.createElement('a');
     aTag.classList.add(NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
     aTag.setAttribute('href',"#Ground Rule Context");
-    aTag.innerText = createGroundRule(data, groundRuleID)["Ground Rule"];
+    aTag.innerText = createGroundRule(data, groundRuleKeyString)["Ground Rule"];
     navbar.appendChild(aTag);
 
     // Get rid of the old individual rule table via class name
-    var individualRuleTableDiv = document.getElementsByClassName(DIV_CLASS +
-            " " + "module-individual-ground-rule-table");
+    var individualRuleTableDiv = document.getElementsByClassName(
+            INDIVIDUAL_GROUND_RULE_MODULE);
     if (individualRuleTableDiv.length != 0) {
         individualRuleTableDiv[0].remove();
     }
