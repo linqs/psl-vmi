@@ -303,7 +303,7 @@ function createViolationTable(data) {
                             //TODO: Constraints seem to never be in groundRules
                             "Violated Constraint": "",
                             "Dissatisfaction":
-                                groundRulesObject[groundRuleID]["dissatisfaction"]
+                                groundRulesObject[groundRuleID]["dissatisfaction"].toFixed(2)
                         };
                         violationObjectList.push(violationObject);
                     }
@@ -379,7 +379,7 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
         var atomID  = groundRule["groundAtoms"][i];
         var tableElem = {
             "Ground Atom" : groundAtomObject[atomID]["text"],
-            "Truth Value" : groundAtomObject[atomID]["prediction"]
+            "Truth Value" : groundAtomObject[atomID]["prediction"].toFixed(2)
         }
         atomElementList.push(tableElem);
     }
@@ -396,7 +396,7 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
             " " + INDIVIDUAL_GROUND_RULE_MODULE)[0];
     var containerDiv = individualGroundRuleTable.getElementsByClassName("table-container")[0];
     var aTag = document.createElement('a');
-    aTag.innerText = "Rule Satisfaction: " + (1-groundRule["dissatisfaction"]);
+    aTag.innerText = "Rule Satisfaction: " + (1-groundRule["dissatisfaction"]).toFixed(2);
     individualGroundRuleTable.insertBefore(aTag, containerDiv);
 }
 
@@ -669,7 +669,7 @@ function createGroundRule(data, groundRuleID) {
 
     return {
         "Ground Rule" : createdGroundRule,
-        "Dissatisfaction" : groundRuleObject["dissatisfaction"],
+        "Dissatisfaction" : groundRuleObject["dissatisfaction"].toFixed(2),
         "id" : groundRuleID
     };
 }
