@@ -521,6 +521,13 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     if (navRuleElem.length != 0) {
         navRuleElem[0].remove();
     }
+    // Remove individual ground rule table if it exists
+    var individualGroundRuleDiv = document.getElementsByClassName(DIV_CLASS +
+            " " + INDIVIDUAL_GROUND_RULE_MODULE);
+    if (individualGroundRuleDiv.length != 0) {
+        individualGroundRuleDiv[0].remove();
+    }
+
     // update navbar with new atom context
     var aTag = document.createElement('a');
     aTag.classList.add("navbar-ground-atom-context");
