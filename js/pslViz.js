@@ -669,6 +669,11 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
 }
 
 function cleanRuleString(rule) {
+    // number patterns
+    var numNegationPattern = new RegExp("\\+ -(\\d\\.\\d)", "g");
+    var oneMultiplicationPattern = new RegExp("1\\.0 \\*", "g");
+
+    // patterns for parens, not equals, negations, and implies
     var openParenPattern = new RegExp("^\\( ", "g");
     var closeParenPattern = new RegExp(" \\) (>>)", "g");
     var endingParenPattern = new RegExp(" \\)$", "g");
@@ -676,6 +681,12 @@ function cleanRuleString(rule) {
     var notEqualPattern = new RegExp("(\\('[^']+' != '[^']+'\\) & )|( & \\('[^']+' != '[^']+'\\))", "g");
     var impliesPattern = new RegExp(">>");
 
+    // Changes + -x to - x and gets rid of any 1.0 *
+    rule = rule.replace(numNegationPattern, "- $1");
+    rule = rule.replace(oneMultiplicationPattern, "");
+
+    // Gets rid of extra parents, removes not equals,
+    // changes negations, changes implies
     rule = rule.replace(negationPattern, "!$1");
     rule = rule.replace(openParenPattern, "");
     rule = rule.replace(closeParenPattern, " $1");
