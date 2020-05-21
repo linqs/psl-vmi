@@ -339,6 +339,66 @@ function createRuleOverviewTable(data) {
             RULE_OVERVIEW_MODULE);
 }
 
+function createAssociatedGroundAtomsTable(data, groundAtomKeyString) {
+    const groundAtom = parseInt(groundAtomKeyString);
+    // Create associtated ground rules list
+    var groundRuleObject = data["groundRules"];
+    var associatedGroundRules = [];
+    for (groundRuleID in groundRuleObject){
+        if (groundRuleObject[groundRuleID]["groundAtoms"].includes(groundAtom)){
+            associatedGroundRules.push(createGroundRule(data, groundRuleID))
+        }
+    }
+    let tableTitle = data["groundAtoms"][groundAtom]["text"] + " " +
+            ASSOCIATED_GROUND_RULES_TABLE_TITLE;
+    const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
+    createTable(associatedGroundRules, associatedGroundRuleCols, tableTitle,
+            GROUND_ATOM_RULES_MODULE);
+
+    // Add tablesorter to this new table
+    $(`.viz-module table.tablesorter`).tablesorter();
+
+    // Add context watcher / updater to this table
+    $('*[data-rule]').click(function() {
+        updateGroundRuleContext(data, this.dataset.rule);
+    });
+}
+
+function createIndividualGroundRuleTable(data, groundRuleKeyString) {
+    // convert rule string id to int id
+    const groundRuleID = parseInt(groundRuleKeyString);
+    var groundAtomObject = data["groundAtoms"];
+    var groundRule = data["groundRules"][groundRuleKeyString];
+
+    atomElementList = []
+    for (var i = 0; i < groundRule["groundAtoms"].length; i++) {
+        var atomID  = groundRule["groundAtoms"][i];
+        var tableElem = {
+            "Ground Atom" : groundAtomObject[atomID]["text"],
+            "Truth Value" : groundAtomObject[atomID]["prediction"]
+        }
+        atomElementList.push(tableElem);
+    }
+    let tableTitle = createGroundRule(data, groundRuleID)["Ground Rule"];
+    console.log(tableTitle);
+    const atomCols = ["Ground Atom", "Truth Value"];
+    createTable(atomElementList, atomCols, tableTitle,
+            INDIVIDUAL_GROUND_RULE_MODULE);
+
+    // Add tablesorter to this new table
+    $(`.viz-module table.tablesorter`).tablesorter();
+
+    // Insert Satisfaction value as a DOM element
+    var individualGroundRuleTable = document.getElementsByClassName(DIV_CLASS +
+            " " + INDIVIDUAL_GROUND_RULE_MODULE)[0];
+    var containerDiv = individualGroundRuleTable.getElementsByClassName("table-container")[0];
+    console.log(individualGroundRuleTable);
+    console.log(containerDiv);
+    var aTag = document.createElement('a');
+    aTag.innerText = "Rule Satisfaction: " + (1-groundRule["dissatisfaction"]);
+    individualGroundRuleTable.insertBefore(aTag, containerDiv);
+}
+
 function exists(container, item) {
     var i = container.length;
     while ( i >= 0 ) {
@@ -467,27 +527,8 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     aTag.innerText = data["groundAtoms"][groundAtom]["text"];
     navbar.appendChild(aTag);
 
-    // Create associtated ground rules list
-    var groundRuleObject = data["groundRules"];
-    var associatedGroundRules = [];
-    for (groundRuleID in groundRuleObject){
-        if (groundRuleObject[groundRuleID]["groundAtoms"].includes(groundAtom)){
-            associatedGroundRules.push(createGroundRule(data, groundRuleID))
-        }
-    }
-    let tableTitle = data["groundAtoms"][groundAtom]["text"] + " " +
-            ASSOCIATED_GROUND_RULES_TABLE_TITLE;
-    const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
-    createTable(associatedGroundRules, associatedGroundRuleCols, tableTitle,
-            GROUND_ATOM_RULES_MODULE);
-
-    // Add tablesorter to this new table
-    $(`.viz-module table.tablesorter`).tablesorter();
-
-    // Add context watcher / updater to this table
-    $('*[data-rule]').click(function() {
-        updateGroundRuleContext(data, this.dataset.rule);
-    });
+    // Create new associated ground rules table
+    createAssociatedGroundAtomsTable(data, groundAtomKeyString)
 
     // Create Compatibility Chart with Ground Atom Context
     let barChartTitle = data["groundAtoms"][groundAtom]["text"] + " " +
@@ -498,8 +539,6 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
 }
 
 function updateGroundRuleContext(data, groundRuleKeyString) {
-    // convert rule string id to int id
-    const groundRuleID = parseInt(groundRuleKeyString);
     // Grab navbar
     var navbar = document.getElementsByClassName("navbar")[0];
     // Remove context rule
@@ -521,35 +560,8 @@ function updateGroundRuleContext(data, groundRuleKeyString) {
         individualRuleTableDiv[0].remove();
     }
 
-    var groundAtomObject = data["groundAtoms"];
-    var groundRule = data["groundRules"][groundRuleKeyString];
-
-    atomElementList = []
-    for (var i = 0; i < groundRule["groundAtoms"].length; i++) {
-        var atomID  = groundRule["groundAtoms"][i];
-        var tableElem = {
-            "Ground Atom" : groundAtomObject[atomID]["text"],
-            "Truth Value" : groundAtomObject[atomID]["prediction"]
-        }
-        atomElementList.push(tableElem);
-    }
-    let tableTitle = createGroundRule(data, groundRuleID)["Ground Rule"];
-    const atomCols = ["Ground Atom", "Truth Value"];
-    createTable(atomElementList, atomCols, tableTitle,
-            INDIVIDUAL_GROUND_RULE_MODULE);
-
-    // Add tablesorter to this new table
-    $(`.viz-module table.tablesorter`).tablesorter();
-
-    // Insert Satisfaction value as a DOM element
-    var individualGroundRuleTable = document.getElementsByClassName(DIV_CLASS +
-            " " + INDIVIDUAL_GROUND_RULE_MODULE)[0];
-    var containerDiv = individualGroundRuleTable.getElementsByClassName("table-container")[0];
-    console.log(individualGroundRuleTable);
-    console.log(containerDiv);
-    var aTag = document.createElement('a');
-    aTag.innerText = "Rule Satisfaction: " + (1-groundRule["dissatisfaction"]);
-    individualGroundRuleTable.insertBefore(aTag, containerDiv);
+    // Create new individual ground rule
+    createIndividualGroundRuleTable(data, groundRuleKeyString);
 }
 
 function createMenu(options, defaultValue, moduleName, div) {
