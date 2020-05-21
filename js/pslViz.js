@@ -271,11 +271,7 @@ function createNavBar() {
 }
 
 function modelContextChangeHandler() {
-    // Show all model context modules, then remove ground atom and
-    // ground rule modules.
-    $("." + RULE_SATISFACTION_MODULE).show();
-    $("." + RULE_COUNT_MODULE).show();
-    $("." + VIOLATED_GROUND_RULES_MODULE).show();
+    // Remove ground atom and ground rule modules.
     removeGroundAtomContext();
     removeGroundRuleContext();
 }
@@ -546,13 +542,6 @@ function readRuleCountData(data) {
     return ruleCountData;
 }
 
-function groundAtomContextHandler(data, groundAtom) {
-    $("." + RULE_SATISFACTION_MODULE).hide();
-    $("." + RULE_COUNT_MODULE).hide();
-    $("." + VIOLATED_GROUND_RULES_MODULE).hide();
-    updateGroundAtomContext(data, groundAtom);
-}
-
 function updateGroundAtomContext(data, groundAtomKeyString) {
     const groundAtom = parseInt(groundAtomKeyString);
     let SatData = computeRuleData(data, groundAtom);
@@ -767,7 +756,7 @@ function init(data) {
 
     // Set context handlers.
     $('*[data-atom]').click(function() {
-        groundAtomContextHandler(data, this.dataset.atom);
+        updateGroundAtomContext(data, this.dataset.atom);
     });
 }
 
