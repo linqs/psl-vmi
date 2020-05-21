@@ -374,7 +374,7 @@ function createRuleOverviewTable(data) {
     for (var i = 0; i < data.length; i++) {
         var rule = data[i];
         var ruleData = {
-            "Rule" : rule["Rule"],
+            "Rule" : cleanRuleString(rule["Rule"]),
             "ID" : rule["ID"],
             "Weighted" : rule["Weighted"],
             "Count" : rule["Count"],
@@ -679,6 +679,24 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
     }
 }
 
+function cleanRuleString(rule) {
+    var openParenPattern = new RegExp("^\\( ", "g");
+    var closeParenPattern = new RegExp(" \\) (>>)", "g");
+    var endingParenPattern = new RegExp(" \\)$", "g");
+    var negationPattern = new RegExp("~\\( ([^)]+\\)) \\)","g");
+    var notEqualPattern = new RegExp("(\\('[^']+' != '[^']+'\\) & )|( & \\('[^']+' != '[^']+'\\))", "g");
+    var impliesPattern = new RegExp(">>");
+
+    rule = rule.replace(negationPattern, "!$1");
+    rule = rule.replace(openParenPattern, "");
+    rule = rule.replace(closeParenPattern, " $1");
+    rule = rule.replace(notEqualPattern, "");
+    rule = rule.replace(impliesPattern, "→");
+    rule = rule.replace(endingParenPattern, "");
+
+    return rule;
+}
+
 // Given data and ground rule ID returns the rule in non-DNF form
 function createGroundRule(data, groundRuleID) {
     var groundRuleObject = data["groundRules"][groundRuleID];
@@ -727,8 +745,10 @@ function createGroundRule(data, groundRuleID) {
     var replaceLabelsPattern = new RegExp(nonVariableLabel,"g");
     createdGroundRule = createdGroundRule.replace(replaceLabelsPattern, "");
 
+
+
     return {
-        "Ground Rule" : createdGroundRule,
+        "Ground Rule" : cleanRuleString(createdGroundRule),
         "Dissatisfaction" : groundRuleObject["dissatisfaction"].toFixed(2),
         "id" : groundRuleID
     };
