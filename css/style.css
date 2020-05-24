@@ -1,7 +1,6 @@
 html {
     width: 100%;
     margin: 0;
-    /* background-color: #00458c; */
 }
 
 body {
@@ -91,6 +90,7 @@ rect.mover {
     width: 100%;
 
     padding-top: 50px;
+    padding-bottom: 60px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -121,7 +121,6 @@ rect.mover {
 .psl-viz .module-associated-rules-table {order: 70;} /*associated ground rules per atom*/
 .psl-viz .module-individual-ground-rule-table {order: 80;} /* individual ground rule table */
 
-
 .viz-module select {
     display: block;
     padding: 2px;
@@ -150,4 +149,89 @@ rect.mover {
 
 [data-rule] {
     cursor: pointer;
+}
+
+.svg-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    fill: #828282;
+    padding-right: 5px;
+    vertical-align: text-top;
+}
+
+/* wrapping for footer */
+.wrapper {
+    padding-right: 30px;
+    padding-left: 30px;
+}
+
+/* footer styling */
+footer {
+    display: block;
+    bottom: 0;
+    position: fixed;
+    width: 100%;
+}
+
+footer.site-footer {
+    font: 400 16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    color: #111;
+    background-color: #fdfdfd;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    -webkit-box-sizing: border-box;
+}
+
+footer.site-footer {
+    border-top-color: #00458c;
+    background-color: #00458c !important;
+    color: #fff !important;
+}
+
+footer.site-footer a,
+footer.site-footer a svg,
+footer.site-footer span {
+   color: #fff !important;
+   fill:  #fff !important;
+}
+
+.site-footer {
+    border-top: 1px solid #e8e8e8;
+    padding: 30px 0;
+}
+
+.simple-footer {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+}
+
+h2.footer-heading {
+   margin-bottom: 0;
+}
+
+.footer-heading {
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.simple-footer span {
+   font-size: 14px;
+   color: #828282;
+}
+
+.social-media-list {
+    list-style: none;
+    margin-left: 0;
+}
+
+.simple-footer ul.social-media-list {
+   margin-bottom: 0;
+}
+
+.simple-footer ul.social-media-list > li {
+   display: inline-block;
+   margin-left: 20px;
 }

@@ -6,13 +6,57 @@
         <script type="text/javascript" src="js/d3.v3.min.js" charset="utf-8"></script>
         <script type="text/javascript" src='js/jquery-3.3.1.min.js'></script>
         <script type="text/javascript" src="js/jquery.tablesorter.min.js"></script>
-        
+
         <link rel='stylesheet' href='css/style.css'>
-        <script type='text/javascript' src='PSLVizData.js'></script>
         <script type='text/javascript' src='js/pslViz.js'></script>
+        <script>
+            function handleFiles() {
+                console.log(this.files);
+
+                let reader = new FileReader();
+                reader.onload = function(event) {
+                    let text = event.target.result;
+                    let json = JSON.parse(text);
+                    init(json);
+                }
+
+                reader.readAsText(this.files[0]);
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                document.getElementById("input").addEventListener("change", handleFiles, false);
+            });
+        </script>
     </head>
     <body>
         <div class="psl-viz">
+            <img src="./assets/psl_logo.svg" alt="The PSL logo">
+            <div class="splash-info">
+                <h1> PSL Data Visualization </h1>
+                <h2> Created by the UCSC LINQS Lab </h2>
+                <p> A PSL Visualization that can be used for... </p>
+                <p> Provide a .json file from a PSL run with the -viz flag </p>
+                <input type="file" id="input" multiple>
+            </div>
         </div>
+        <footer class="site-footer">
+            <div class="wrapper">
+                <div class="simple-footer">
+                    <h2 class="footer-heading">Probabilistic Soft Logic</h2>
+                    <span><ul class="social-media-list"><li><a href="https://github.com/linqs"><svg class="svg-icon"><use xlink:href="./assets/minima-social-icons.svg#github"></use></svg></a></li><li><a href="https://www.twitter.com/LINQS_edu"><svg class="svg-icon"><use xlink:href="./assets/minima-social-icons.svg#twitter"></use></svg></a></li><li><a href="https://youtube.com/LINQSLab"><svg class="svg-icon"><use xlink:href="./assets/minima-social-icons.svg#youtube"></use></svg></a></li><li><a href="https://plus.google.com/106422136513784453367"><svg class="svg-icon"><use xlink:href="./assets/minima-social-icons.svg#googleplus"></use></svg></a></li><li><a href="/feed.xml"><svg class="svg-icon"><use xlink:href="./assets/minima-social-icons.svg#rss"></use></svg></a></li></ul>
+                    </span>
+                </div>
+                <div class="simple-footer">
+                    <span>
+                        © 2020 LINQS Resreach Group.
+                        See <a href="https://github.com/linqs/psl-website/blob/master/LICENSE.md">license</a>.
+                    </span>
+
+                    <div class="issues">
+                        Issues or corrections? <a href="https://github.com/linqs/psl-website/issues">Click here</a>.
+                    </div>
+                </div>
+            </div>
+        </footer>
     </body>
 </html>

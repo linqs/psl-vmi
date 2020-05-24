@@ -754,27 +754,6 @@ function createGroundRule(data, groundRuleID) {
     };
 }
 
-// Sets up the launch page:
-// Containts application information as well as a place to input a JSON
-// file that contains PSL information that the visualization will display
-function launch(){
-    var baseDiv = document.getElementsByClassName("psl-viz")[0];
-    var fileInput = document.createElement("input");
-    fileInput.setAttribute("type", "file");
-    fileInput.addEventListener("change", handleFiles, false);
-    baseDiv.appendChild(fileInput);
-    function handleFiles() {
-        // Grab file from input and pass to init
-        let reader = new FileReader();
-        reader.onload = function(event) {
-            let text = event.target.result;
-            let json = JSON.parse(text);
-            init(json);
-        }
-        reader.readAsText(this.files[0]);
-    }
-}
-
 // Sets up the visualization itself:
 // Given a data file creates respective tables, charts, context handlers, etc.
 function init(data) {
@@ -785,6 +764,9 @@ function init(data) {
     while (baseNode.firstChild) {
         baseNode.removeChild(baseNode.lastChild);
     }
+    // Change footer style so that it stays at bottom of page
+    var footer = document.getElementsByClassName("site-footer")[0];
+    footer.style["position"] = "unset";
 
     // Create the context navigation bar
     createNavBar()
@@ -819,7 +801,3 @@ function init(data) {
         updateGroundAtomContext(data, this.dataset.atom);
     });
 }
-
-$(document).ready(function() {
-    launch();
-});
