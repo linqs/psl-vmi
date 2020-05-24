@@ -10,4 +10,4 @@ Or specify a path to for data to be written into:
 ```bash
 $ ./run.sh --visualization <path>
 ```
-Move the data file into this repository and open the html file with any browser
+Open the html file with any browser and then select the data file from the file uploader.
