@@ -9,24 +9,6 @@
 
         <link rel='stylesheet' href='css/style.css'>
         <script type='text/javascript' src='js/pslViz.js'></script>
-        <script>
-            function handleFiles() {
-                console.log(this.files);
-
-                let reader = new FileReader();
-                reader.onload = function(event) {
-                    let text = event.target.result;
-                    let json = JSON.parse(text);
-                    init(json);
-                }
-
-                reader.readAsText(this.files[0]);
-            }
-
-            document.addEventListener("DOMContentLoaded", function() {
-                document.getElementById("input").addEventListener("change", handleFiles, false);
-            });
-        </script>
     </head>
     <body>
         <div class="psl-viz">
@@ -36,7 +18,7 @@
                 <h2> Created by the UCSC LINQS Lab </h2>
                 <p> A PSL Visualization that can be used for... </p>
                 <p> Provide a .json file from a PSL run with the -viz flag </p>
-                <input type="file" id="input" multiple>
+                <input type="file" class="input" multiple>
             </div>
         </div>
         <footer class="site-footer">

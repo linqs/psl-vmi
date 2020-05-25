@@ -754,6 +754,25 @@ function createGroundRule(data, groundRuleID) {
     };
 }
 
+// Handles the splash screen functionallity
+function launch() {
+    function handleFiles() {
+        console.log(this.files);
+        let reader = new FileReader();
+        reader.onload = function(event) {
+            let text = event.target.result;
+            let json = JSON.parse(text);
+            init(json);
+        }
+
+        reader.readAsText(this.files[0]);
+    }
+
+    // Add change listener to input element
+    var input = document.getElementsByClassName("input")[0];
+    input.addEventListener("change", handleFiles, false);
+}
+
 // Sets up the visualization itself:
 // Given a data file creates respective tables, charts, context handlers, etc.
 function init(data) {
@@ -801,3 +820,7 @@ function init(data) {
         updateGroundAtomContext(data, this.dataset.atom);
     });
 }
+
+$(document).ready(function() {
+    launch();
+});
