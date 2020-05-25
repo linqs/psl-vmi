@@ -25,6 +25,24 @@ th {
     height: 50px;
 }
 
+.splash-info {
+    text-align: center;
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    margin-left: 150px;
+    margin-right: 150px;
+    margin-bottom: 15px;
+}
+
+/* .input{
+    position: relative;
+    display: block;
+    margin : 0 auto;
+} */
+
 /* Navbar links */
 .psl-viz .module-individual-ground-rule-table a {
   display: block;
