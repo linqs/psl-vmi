@@ -724,22 +724,21 @@ function createGroundRule(data, groundRuleID) {
     };
 }
 
-// Handles the splash screen functionallity
-function launch() {
-    function handleFiles() {
-        console.log(this.files);
-        let reader = new FileReader();
-        reader.onload = function(event) {
-            let text = event.target.result;
-            let json = JSON.parse(text);
-            init(json);
-        }
-
-        reader.readAsText(this.files[0]);
+function handleFiles() {
+    let reader = new FileReader();
+    reader.onload = function(event) {
+        let text = event.target.result;
+        let json = JSON.parse(text);
+        init(json);
     }
 
+    reader.readAsText(this.files[0]);
+}
+
+// Handles the splash screen functionallity.
+function launch() {
     // Add change listener to input element
-    var input = document.getElementsByClassName("input")[0];
+    var input = document.querySelector('.psl-viz .psl-data-input');
     input.addEventListener("change", handleFiles, false);
 }
 
