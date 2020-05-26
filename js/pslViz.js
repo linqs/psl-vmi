@@ -188,8 +188,8 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
 }
 
 function createTable(data, columns, title, className) {
-	var div = d3.select('.psl-viz').append('div');
-	div.classed("viz-module", true);
+	var div = d3.select(DIV_NAME).append('div');
+	div.classed(DIV_CLASS, true);
     div.classed(className, true);
 
     let titleDiv = div.append('div');
@@ -219,7 +219,7 @@ function createTable(data, columns, title, className) {
     if (className == GROUND_ATOM_RULES_MODULE) {
         rows.attr('data-rule', function (row) { return row.id; });
     }
-    else if (className == TRUTH_TABLE_MODULE) {
+    else if (className == TRUTH_TABLE_MODULE || INDIVIDUAL_GROUND_RULE_MODULE) {
         rows.attr('data-atom', function(atom) { return atom.id; });
     }
 
@@ -421,7 +421,8 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
         var atomID  = groundRule["groundAtoms"][i];
         var tableElem = {
             "Ground Atom" : groundAtomObject[atomID]["text"],
-            "Truth Value" : groundAtomObject[atomID]["prediction"].toFixed(2)
+            "Truth Value" : groundAtomObject[atomID]["prediction"].toFixed(2),
+            "id" : atomID
         }
         atomElementList.push(tableElem);
     }
@@ -432,6 +433,10 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
 
     // Add tablesorter to this new table
     $(`.viz-module table.tablesorter`).tablesorter();
+    // Set click handler for ground atoms in the ground rule
+    $('*[data-atom]').click(function() {
+        updateGroundAtomContext(data, this.dataset.atom);
+    });
 
     // Insert Satisfaction value as a DOM element
     var individualGroundRuleTable = document.getElementsByClassName(
@@ -547,34 +552,11 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     let SatData = computeRuleData(data, groundAtom);
     let groundAtomSatData = readSatisfactionData(SatData);
 
-    // Get rid of the old associated rules table via class name
-    var associatedTableDiv = document.getElementsByClassName(
-            GROUND_ATOM_RULES_MODULE);
-    if (associatedTableDiv.length != 0) {
-        associatedTableDiv[0].remove();
-    }
+    removeGroundAtomContext();
+    removeGroundRuleContext();
 
-    // Grab navbar
+    // Grab navbar and update navbar with new atom context
     var navbar = document.getElementsByClassName("navbar")[0];
-    // Remove context atom and rule if one exists
-    var navAtomElem = navbar.getElementsByClassName(
-            NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
-    var navRuleElem = navbar.getElementsByClassName(
-            NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
-    if (navAtomElem.length != 0) {
-        navAtomElem[0].remove();
-    }
-    if (navRuleElem.length != 0) {
-        navRuleElem[0].remove();
-    }
-    // Remove individual ground rule table if it exists
-    var individualGroundRuleDiv = document.getElementsByClassName(
-            INDIVIDUAL_GROUND_RULE_MODULE);
-    if (individualGroundRuleDiv.length != 0) {
-        individualGroundRuleDiv[0].remove();
-    }
-
-    // update navbar with new atom context
     var aTag = document.createElement('a');
     aTag.classList.add(NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
     aTag.setAttribute('href',"#Ground Atom Context");
@@ -596,27 +578,15 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
 }
 
 function updateGroundRuleContext(data, groundRuleKeyString) {
-    // Grab navbar
+    removeGroundRuleContext();
+
+    // Grab navbar and update navbar with new rule context
     var navbar = document.getElementsByClassName("navbar")[0];
-    // Remove context rule
-    var navRuleElem = navbar.getElementsByClassName(
-            NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
-    if (navRuleElem.length != 0) {
-        navRuleElem[0].remove();
-    }
-    // update navbar with new rule context
     var aTag = document.createElement('a');
     aTag.classList.add(NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
     aTag.setAttribute('href',"#Ground Rule Context");
     aTag.innerText = createGroundRule(data, groundRuleKeyString)["Ground Rule"];
     navbar.appendChild(aTag);
-
-    // Get rid of the old individual rule table via class name
-    var individualRuleTableDiv = document.getElementsByClassName(
-            INDIVIDUAL_GROUND_RULE_MODULE);
-    if (individualRuleTableDiv.length != 0) {
-        individualRuleTableDiv[0].remove();
-    }
 
     // Create new individual ground rule
     createIndividualGroundRuleTable(data, groundRuleKeyString);
@@ -777,6 +747,16 @@ function launch() {
 // Given a data file creates respective tables, charts, context handlers, etc.
 function init(data) {
     console.log(data);
+
+    for (key of Object.keys(data)) {
+        console.log(key);
+        for (strObjId in data[key]) {
+            let copy = data[key][strObjId];
+            delete data[key][strObjId];
+            intObjId = parseInt(strObjId);
+            data[key][intObjId] = copy;
+        }
+    }
 
     // clear psl-viz DOM element for visualization
     const baseNode = document.getElementsByClassName("psl-viz")[0];
