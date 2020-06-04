@@ -764,9 +764,10 @@ function init(data) {
     while (baseNode.firstChild) {
         baseNode.removeChild(baseNode.lastChild);
     }
-    // Change footer style so that it stays at bottom of page
-    let footer = document.getElementsByClassName("site-footer")[0];
-    footer.style["position"] = "unset";
+
+    // Change footer style so that it stays at bottom of page.
+    let footer = document.querySelector(".site-footer");
+    footer.style["position"] = "relative";
 
     // Create the context navigation bar
     createNavBar()
