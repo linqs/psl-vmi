@@ -393,22 +393,7 @@ function createViolationTable(data) {
 }
 
 // Create a table that gives an overview for all rules
-function createRuleOverviewTable(data) {
-    // Bring Sat/Dis data to 2nd decimal place and gather all rule data
-    let overviewData = [];
-    for (let i = 0; i < data.length; i++) {
-        let rule = data[i];
-        let ruleData = {
-            "ID" : rule["ID"],
-            "Rule" : rule["cleanText"],
-            "Weighted" : rule["Weighted"],
-            "Count" : rule["Count"],
-            "Total Dissatisfaction": rule["Total Dissatisfaction"].toFixed(2),
-            "Mean Dissatisfaction": rule["Mean Dissatisfaction"].toFixed(2)
-        }
-        overviewData.push(ruleData);
-    }
-
+function createRuleOverviewTable(rules) {
     const overviewCols = [
         "ID",
         "Rule",
@@ -417,6 +402,20 @@ function createRuleOverviewTable(data) {
         "Total Dissatisfaction",
         "Mean Dissatisfaction"
     ];
+    let overviewData = [];
+
+    for (const ruleID in rules) {
+        let rule = rules[ruleID];
+
+        overviewData.push({
+            "ID": rule["index"],
+            "Rule": rule["cleanText"],
+            "Weighted": rule["weighted"],
+            "Count": rule["count"],
+            "Total Dissatisfaction": rule["dissatisfaction"].toFixed(2),
+            "Mean Dissatisfaction": rule["meanDissatisfaction"].toFixed(2),
+        });
+    }
 
     createTable(overviewData, overviewCols, RULE_OVERVIEW_TABLE_TITLE, RULE_OVERVIEW_MODULE);
 }
@@ -496,6 +495,52 @@ function exists(container, item) {
     return false;
 }
 
+// Compute the rule-level aggregate statistics and attatch them directly to the rule.
+function indexRules(data) {
+    const rules = data['rules'];
+    const groundRules = data['groundRules'];
+
+    // {ruleID: {'satisfation': X, 'dissatisfaction': Y, 'count': Z}, ...}
+    let stats = {};
+
+    // Ensure that every rule gets an entry (in case there are no ground rules for some rule).
+    for (const ruleID in rules) {
+        stats[ruleID] = {
+            'satisfaction': 0.0,
+            'dissatisfaction': 0.0,
+            'count': 0,
+        };
+    }
+
+    for (const groundRuleID in groundRules) {
+        let ruleID = groundRules[groundRuleID]['ruleID'];
+
+        stats[ruleID]['dissatisfaction'] += groundRules[groundRuleID]['dissatisfaction'];
+        stats[ruleID]['satisfaction'] += (1.0 - groundRules[groundRuleID]['dissatisfaction']);
+        stats[ruleID]['count']++;
+    }
+
+    let ruleIndex = 1;
+    for (const ruleID in rules) {
+        let meanDissatisfaction = 0.0;
+        let meanSatisfaction = 0.0;
+
+        if (stats[ruleID]['count'] != 0) {
+            meanDissatisfaction = stats[ruleID]['dissatisfaction'] / stats[ruleID]['count'];
+            meanSatisfaction = stats[ruleID]['satisfaction'] / stats[ruleID]['count'];
+        }
+
+        rules[ruleID]["index"] = ruleIndex;
+        rules[ruleID]["count"] = stats[ruleID]['count'];
+        rules[ruleID]["dissatisfaction"] = stats[ruleID]['dissatisfaction'];
+        rules[ruleID]["satisfaction"] = stats[ruleID]['satisfaction'];
+        rules[ruleID]["meanDissatisfaction"] = meanDissatisfaction;
+        rules[ruleID]["meanSatisfaction"] = meanSatisfaction;
+
+        ruleIndex++;
+    }
+}
+
 // Compute the rule statistics for each ground rule, the aggregated
 // statistics will be associated with the parent rule of each ground rule.
 // If the function is given a Ground Atom, then the function only computes the
@@ -504,16 +549,16 @@ function computeRuleData(data, groundAtom) {
     const rules = data["rules"];
     const groundRules = data["groundRules"];
 
-    let totalGroundRules = 0;
     let satisfactionData = [];
     let ruleIdentifier = 1;
 
-    for (rule in rules) {
+    for (const rule in rules) {
         let totSat = 0;
         let totDis = 0;
         let ruleData = {};
         let groundRuleCount = 0;
-        for (let groundRule in groundRules) {
+
+        for (const groundRule in groundRules) {
             if (groundRules[groundRule]["ruleID"] != rule) {
                 continue;
             }
@@ -780,7 +825,7 @@ function init(data) {
 
     createTruthTable(data);
     createViolationTable(data);
-    createRuleOverviewTable(overallRuleData);
+    createRuleOverviewTable(data.rules);
 
     // Make each of our tables a tablesorter instance.
     $(`.viz-module table.tablesorter`).tablesorter();
@@ -808,6 +853,8 @@ function indexData(data) {
     for (let ruleID in data.rules) {
         data.rules[ruleID].cleanText = cleanRuleString(data.rules[ruleID].text);
     }
+
+    indexRules(data);
 
     return data;
 }
