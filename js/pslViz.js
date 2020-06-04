@@ -280,25 +280,28 @@ function removeGroundAtomContext() {
     $('.' + NAVBAR_GROUND_ATOM_CONTEXT_CHANGER).remove();
 }
 
-// TODO: Better way to grab from JSON then what these functions do??
 function createTruthTable(data) {
-    // Find the correct data
     let truthObjectList = [];
     for (key in data["truthMap"]) {
-        let truthObject = {
+        truthObjectList.push({
             "Prediction": data["groundAtoms"][key]["prediction"].toFixed(2),
             "Truth": data["truthMap"][key].toFixed(2),
             "Predicate": data["groundAtoms"][key]["text"],
-            "Difference" : Math.abs(data["truthMap"][key] -
-                    data["groundAtoms"][key]["prediction"]).toFixed(2),
+            "Difference": Math.abs(data["truthMap"][key] - data["groundAtoms"][key]["prediction"]).toFixed(2),
             "id": key,
-        };
-        truthObjectList.push(truthObject);
+        });
     }
 
-    // Create table
+    // Create table.
     const predictionTruthCols = ['Predicate', 'Prediction', 'Truth', 'Difference'];
     createTable(truthObjectList, predictionTruthCols, TRUTH_TABLE_TITLE, TRUTH_TABLE_MODULE);
+
+    // Set context handler for all the truth atoms.
+    // Note that we use a delagate (attaching a handler to the table's body)
+    // instead of directly attatching a handler to each row.
+    $(`.psl-viz .${TRUTH_TABLE_MODULE} table tbody`).on('click', 'tr', function() {
+        updateGroundAtomContext(data, this.dataset.atom);
+    });
 }
 
 function createViolationTable(data) {
@@ -374,8 +377,10 @@ function createAssociatedGroundAtomsTable(data, groundAtomID, aggregateStats) {
     // Add tablesorter to this new table.
     $(`.viz-module.${GROUND_ATOM_RULES_MODULE} table.tablesorter`).tablesorter();
 
-    // Add context watcher / updater to this table
-    $(`.viz-module.${GROUND_ATOM_RULES_MODULE} table *[data-rule]`).click(function() {
+    // Set context handler for all the ground rules.
+    // Note that we use a delagate (attaching a handler to the table's body)
+    // instead of directly attatching a handler to each row.
+    $(`.viz-module.${GROUND_ATOM_RULES_MODULE} table tbody`).on('click', 'tr', function() {
         updateGroundRuleContext(data, this.dataset.rule);
     });
 }
@@ -402,19 +407,18 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
     createTable(atomElementList, atomCols, tableTitle, INDIVIDUAL_GROUND_RULE_MODULE);
 
     // Add tablesorter to this new table
-    $(`.viz-module table.tablesorter`).tablesorter();
+    $(`.psl-viz .${INDIVIDUAL_GROUND_RULE_MODULE} table.tablesorter`).tablesorter();
 
-    // Set click handler for ground atoms in the ground rule
-    $('*[data-atom]').click(function() {
+    // Set context handler for all the ground atoms.
+    // Note that we use a delagate (attaching a handler to the table's body)
+    // instead of directly attatching a handler to each row.
+    $(`.psl-viz .${INDIVIDUAL_GROUND_RULE_MODULE} table tbody`).on('click', 'tr', function() {
         updateGroundAtomContext(data, this.dataset.atom);
     });
 
-    // Insert Satisfaction value as a DOM element
-    let individualGroundRuleTable = document.getElementsByClassName(INDIVIDUAL_GROUND_RULE_MODULE)[0];
-    let containerDiv = individualGroundRuleTable.getElementsByClassName("table-container")[0];
-    let aTag = document.createElement('a');
-    aTag.innerText = "Rule Satisfaction: " + (1 - groundRule["dissatisfaction"]).toFixed(2);
-    individualGroundRuleTable.insertBefore(aTag, containerDiv);
+    // Insert Satisfaction value.
+    let text = "Rule Satisfaction: " + (1 - groundRule["dissatisfaction"]).toFixed(2);
+    $(`<a>${text}</a>`).insertBefore(`.${INDIVIDUAL_GROUND_RULE_MODULE} .table-container`);
 }
 
 // Get the rule data needed for the Satisfaction module
@@ -671,11 +675,6 @@ function init(data) {
     setupBarChartModule(ruleCountData, DEF_BAR_CHART_X_LABEL,
             RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE,
             RULE_COUNT_CHART_TITLE);
-
-    // Set context handlers.
-    $('*[data-atom]').click(function() {
-        updateGroundAtomContext(data, this.dataset.atom);
-    });
 }
 
 // Fetch the per-rule satisfaction data for a ground atom.
