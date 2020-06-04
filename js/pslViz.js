@@ -1,3 +1,5 @@
+window.pslviz = window.pslviz || {};
+
 const BAR_CHART_MARGIN = {
     top: 20,
     right: 10,
@@ -5,6 +7,7 @@ const BAR_CHART_MARGIN = {
     left: 80
 };
 
+// TODO(eriq): Dynamic sizes.
 const BAR_CHART_COL_WIDTH = 100;
 const BAR_CHART_HEIGHT = 400;
 const BAR_CHART_TRANSITION_DURATION = 1000;
@@ -37,6 +40,41 @@ const SATISFACTION_Y_LABELS = [
     "Mean Satisfaction",
     "Total Dissatisfaction",
     "Mean Dissatisfaction"
+];
+
+// Regular expressions to clean rules.
+const RULE_STRING_REPLACEMENTS = [
+    // [pattern, replacement].
+
+    // "+ -1.0" -> "-1.0"
+    [/\+ -(\d+\.\d+)/g, "- $1"],
+
+    // "1.0 * A" -> "A"
+    [/1\.0 \*/g, ""],
+
+    // "~( Foo(A, B) )" -> "!Foo(A, B)"
+    [/~\( ([^)]+\)) \)/g, "!$1"],
+
+    // ^"( ... ) >> Foo(A, B)" -> "... ) >> Foo(A, B)"
+    [/^\( /, ""],
+
+    // "... ) >> Foo(A, B)" -> "... >> Foo(A, B)"
+    [/ \) (>>)/, " $1"],
+
+    // ">>" -> "→"
+    [/>>/, "→"],
+
+    // " )"$ -> ""
+    [/ \)$/, ""],
+];
+
+// Regular expressions to clean ground rules.
+const GROUND_RULE_STRING_REPLACEMENTS = [
+    // [pattern, replacement].
+
+    // "& ('123' != '432')" -> ""
+    // "('123' != '432') &" -> ""
+    [/(\('[^']+' != '[^']+'\) & )|( & \('[^']+' != '[^']+'\))/g, ""],
 ];
 
 function updateBarChart(chart, data, newYVal) {
@@ -81,24 +119,21 @@ function transformBarChart(chart, barData) {
         });
 }
 
-function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
-        chartId) {
+function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
     var data = [];
-    for (var i = 1; i < chartData.length+1; i++) {
-        var datum = {};
-        datum.ruleNo = chartData[i-1]["ID"];
-        datum.value = chartData[i-1][yAxisLabel];
-        data.push(datum);
+    for (var i = 1; i < chartData.length + 1; i++) {
+        var row = {};
+        row.ruleNo = chartData[i - 1]["ID"];
+        row.value = chartData[i - 1][yAxisLabel];
+        data.push(row);
     }
 
     const outterWidth = data.length * BAR_CHART_COL_WIDTH;
     const outterHeight = BAR_CHART_HEIGHT;
 
     // The dimensions inside the margins.
-    const innerWidth = outterWidth - BAR_CHART_MARGIN.left -
-        BAR_CHART_MARGIN.right;
-    const innerHeight = outterHeight - BAR_CHART_MARGIN.top -
-        BAR_CHART_MARGIN.bottom;
+    const innerWidth = outterWidth - BAR_CHART_MARGIN.left - BAR_CHART_MARGIN.right;
+    const innerHeight = outterHeight - BAR_CHART_MARGIN.top - BAR_CHART_MARGIN.bottom;
 
     var xScale = d3.scale.ordinal()
         .domain(data.map(function (d) { return d.ruleNo; }))
@@ -111,8 +146,7 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
     var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
     var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
-    const svgTranslation = "translate(" + BAR_CHART_MARGIN.left + "," +
-        BAR_CHART_MARGIN.top + ")";
+    const svgTranslation = "translate(" + BAR_CHART_MARGIN.left + "," + BAR_CHART_MARGIN.top + ")";
 
     var svg = div.append("svg")
         .attr("width", outterWidth)
@@ -166,9 +200,7 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel,
         .attr("x", function(row) { return xScale(row.ruleNo); })
         .attr("width", xScale.rangeBand())
         .attr("y", function(row) { return yScale(row.value); })
-        .attr("height", function(row) { return innerHeight -
-                yScale(row.value);
-        });
+        .attr("height", function(row) { return innerHeight - yScale(row.value); });
 
     return {
         'id': chartId,
@@ -277,31 +309,31 @@ function modelContextChangeHandler() {
 }
 
 function removeGroundRuleContext() {
-    let groundRuleContextChanger = document.getElementsByClassName(
-            NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
-    let groundRuleSatisfaction = document.getElementsByClassName(
-            INDIVIDUAL_GROUND_RULE_MODULE);
+    let groundRuleContextChanger = document.getElementsByClassName(NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
+    let groundRuleSatisfaction = document.getElementsByClassName(INDIVIDUAL_GROUND_RULE_MODULE);
+
     if (groundRuleContextChanger.length != 0) {
         groundRuleContextChanger[0].remove();
     }
+
     if (groundRuleSatisfaction.length != 0) {
         groundRuleSatisfaction[0].remove();
     }
 }
 
 function removeGroundAtomContext() {
-    let groundAtomCompatability = document.getElementsByClassName(
-            GROUND_ATOM_SATISFACTION_MODULE);
-    let groundAtomAssociatedRules = document.getElementsByClassName(
-            GROUND_ATOM_RULES_MODULE);
-    let groundAtomContextChanger = document.getElementsByClassName(
-            NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
+    let groundAtomCompatability = document.getElementsByClassName(GROUND_ATOM_SATISFACTION_MODULE);
+    let groundAtomAssociatedRules = document.getElementsByClassName(GROUND_ATOM_RULES_MODULE);
+    let groundAtomContextChanger = document.getElementsByClassName(NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
+
     if (groundAtomCompatability.length != 0) {
         groundAtomCompatability[0].remove();
     }
+
     if (groundAtomAssociatedRules.length != 0) {
         groundAtomAssociatedRules[0].remove();
     }
+
     if (groundAtomContextChanger.length != 0) {
         groundAtomContextChanger[0].remove();
     }
@@ -322,11 +354,10 @@ function createTruthTable(data) {
         }
         truthObjectList.push(truthObject);
     }
+
     // Create table
-    const predictionTruthCols = ['Predicate', 'Prediction','Truth',
-            'Difference'];
-    createTable(truthObjectList, predictionTruthCols, TRUTH_TABLE_TITLE,
-            TRUTH_TABLE_MODULE);
+    const predictionTruthCols = ['Predicate', 'Prediction', 'Truth', 'Difference'];
+    createTable(truthObjectList, predictionTruthCols, TRUTH_TABLE_TITLE, TRUTH_TABLE_MODULE);
 }
 
 function createViolationTable(data) {
@@ -335,31 +366,27 @@ function createViolationTable(data) {
     var groundRulesObject = data["groundRules"];
     var violationObjectList = [];
     for (ruleID in rulesObject) {
-        if (rulesObject[ruleID]["weighted"] == false) {
-            for (groundRuleID in groundRulesObject) {
-                if (groundRulesObject[groundRuleID]["ruleID"] == ruleID) {
-                    if (groundRulesObject[groundRuleID]["dissatisfaction"] > 0){
-                        var violationObject = {
-                            //TODO: Constraints seem to never be in groundRules
-                            "Violated Constraint": "",
-                            "Dissatisfaction":
-                                groundRulesObject[groundRuleID]["dissatisfaction"].toFixed(2)
-                        };
-                        violationObjectList.push(violationObject);
-                    }
-                }
+        if (rulesObject[ruleID]["weighted"] != false) {
+            continue
+        }
+
+        for (groundRuleID in groundRulesObject) {
+            if (groundRulesObject[groundRuleID]["ruleID"] == ruleID && groundRulesObject[groundRuleID]["dissatisfaction"] > 0) {
+                var violationObject = {
+                    //TODO: Constraints seem to never be in groundRules
+                    "Violated Constraint": "",
+                    "Dissatisfaction":
+                        groundRulesObject[groundRuleID]["dissatisfaction"].toFixed(2)
+                };
+                violationObjectList.push(violationObject);
             }
         }
     }
 
-
     // Create table if there are violated constraints
     if (violationObjectList.length != 0) {
-        const violatedGroundRulesCols = ['Violated Constraint',
-                'Dissatisfaction'];
-        createTable(violationObjectList, violatedGroundRulesCols,
-                VIOLATED_GROUND_RULES_TABLE_TITLE,
-                VIOLATED_GROUND_RULES_MODULE);
+        const violatedGroundRulesCols = ['Violated Constraint', 'Dissatisfaction'];
+        createTable(violationObjectList, violatedGroundRulesCols, VIOLATED_GROUND_RULES_TABLE_TITLE, VIOLATED_GROUND_RULES_MODULE);
     }
 }
 
@@ -370,8 +397,8 @@ function createRuleOverviewTable(data) {
     for (var i = 0; i < data.length; i++) {
         var rule = data[i];
         var ruleData = {
-            "Rule" : cleanRuleString(rule["Rule"]),
             "ID" : rule["ID"],
+            "Rule" : rule["cleanText"],
             "Weighted" : rule["Weighted"],
             "Count" : rule["Count"],
             "Total Dissatisfaction": rule["Total Dissatisfaction"].toFixed(2),
@@ -379,10 +406,17 @@ function createRuleOverviewTable(data) {
         }
         overviewData.push(ruleData);
     }
-    const overviewCols = ["ID", "Rule", "Weighted", "Count",
-            "Total Dissatisfaction", "Mean Dissatisfaction"];
-    createTable(overviewData, overviewCols, RULE_OVERVIEW_TABLE_TITLE,
-            RULE_OVERVIEW_MODULE);
+
+    const overviewCols = [
+        "ID",
+        "Rule",
+        "Weighted",
+        "Count",
+        "Total Dissatisfaction",
+        "Mean Dissatisfaction"
+    ];
+
+    createTable(overviewData, overviewCols, RULE_OVERVIEW_TABLE_TITLE, RULE_OVERVIEW_MODULE);
 }
 
 function createAssociatedGroundAtomsTable(data, groundAtomKeyString) {
@@ -468,14 +502,16 @@ function exists(container, item) {
 function computeRuleData(data, groundAtom) {
     const rules = data["rules"];
     const groundRules = data["groundRules"];
-    var totalGroundRules = 0;
-    var satisfactionData = [];
-    var ruleIdentifier = 1;
-    for ( rule in rules ) {
-        var totSat = 0;
-        var totDis = 0;
-        var ruleData = {};
-        var groundRuleCount = 0;
+
+    let totalGroundRules = 0;
+    let satisfactionData = [];
+    let ruleIdentifier = 1;
+
+    for (rule in rules) {
+        let totSat = 0;
+        let totDis = 0;
+        let ruleData = {};
+        let groundRuleCount = 0;
         for ( groundRule in groundRules ) {
             if ( groundRules[groundRule]["ruleID"] == rule ) {
                 if ( groundAtom == undefined ) {
@@ -497,7 +533,7 @@ function computeRuleData(data, groundAtom) {
         satMean = (groundRuleCount != 0 ? (totSat/groundRuleCount):(0));
         disSatMean = (groundRuleCount != 0 ? (totDis/groundRuleCount):(0));
         ruleData = {
-            "Rule": rules[rule]["text"],
+            "cleanText": rules[rule]["cleanText"],
             "ID" : ruleIdentifier,
             "Weighted" : rules[rule]["weighted"],
             "Count" : rules[rule]["count"],
@@ -519,7 +555,7 @@ function readSatisfactionData(data) {
         var rule = data[i];
         if (rule["Weighted"] == true) {
             var ruleData = {
-                "Rule" : rule["Rule"],
+                "Rule" : rule["cleanText"],
                 "ID" : rule["ID"],
                 "Total Satisfaction": rule["Total Satisfaction"],
                 "Mean Satisfaction": rule["Mean Satisfaction"],
@@ -549,8 +585,8 @@ function readRuleCountData(data) {
 
 function updateGroundAtomContext(data, groundAtomKeyString) {
     const groundAtom = parseInt(groundAtomKeyString);
-    let SatData = computeRuleData(data, groundAtom);
-    let groundAtomSatData = readSatisfactionData(SatData);
+    let satData = computeRuleData(data, groundAtom);
+    let groundAtomSatData = readSatisfactionData(satData);
 
     removeGroundAtomContext();
     removeGroundRuleContext();
@@ -570,8 +606,7 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     createAssociatedGroundAtomsTable(data, groundAtomKeyString)
 
     // Create Compatibility Chart with Ground Atom Context
-    let barChartTitle = data["groundAtoms"][groundAtom]["text"] + " " +
-            RULE_SATISFACTION_CHART_TITLE;
+    let barChartTitle = data["groundAtoms"][groundAtom]["text"] + " " + RULE_SATISFACTION_CHART_TITLE;
     setupBarChartModule(groundAtomSatData, DEF_BAR_CHART_X_LABEL,
             DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
             GROUND_ATOM_SATISFACTION_MODULE, barChartTitle);
@@ -611,12 +646,12 @@ function createMenu(options, defaultValue, moduleName, div) {
     return menuId;
 }
 
-function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
-        className, title) {
+function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions, className, title) {
     let oldModule = document.getElementsByClassName(className);
-    if ( oldModule.length != 0 ) {
+    if (oldModule.length != 0) {
         oldModule[0].remove();
     }
+
     var div = d3.select(DIV_NAME).append("div");
     div.classed(DIV_CLASS, true);
 
@@ -626,11 +661,12 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
     titleDiv.text(title);
 
     var menuId = undefined;
-    if ( menuOptions != undefined ) {
+    if (menuOptions != undefined) {
         menuId = createMenu(menuOptions, yAxisLabel, className, div);
     }
+
     var chart = createBarChart(data, div, xAxisLabel, yAxisLabel, className);
-    if ( menuId != undefined ) {
+    if (menuId != undefined) {
         document.getElementsByClassName(menuId)[0].onchange = function () {
             let newVal = document.getElementsByClassName(menuId)[0].value;
             updateBarChart(chart, data, newVal);
@@ -638,39 +674,26 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions,
     }
 }
 
-function cleanRuleString(rule) {
-    // number patterns
-    var numNegationPattern = new RegExp("\\+ -(\\d\\.\\d)", "g");
-    var oneMultiplicationPattern = new RegExp("1\\.0 \\*", "g");
+function cleanRuleString(ruleText) {
+    RULE_STRING_REPLACEMENTS.forEach(function(replacementInfo) {
+        ruleText = ruleText.replace(replacementInfo[0], replacementInfo[1]);
+    });
 
-    // patterns for parens, not equals, negations, and implies
-    var openParenPattern = new RegExp("^\\( ", "g");
-    var closeParenPattern = new RegExp(" \\) (>>)", "g");
-    var endingParenPattern = new RegExp(" \\)$", "g");
-    var negationPattern = new RegExp("~\\( ([^)]+\\)) \\)","g");
-    var notEqualPattern = new RegExp("(\\('[^']+' != '[^']+'\\) & )|( & \\('[^']+' != '[^']+'\\))", "g");
-    var impliesPattern = new RegExp(">>");
+    return ruleText;
+}
 
-    // Changes + -x to - x and gets rid of any 1.0 *
-    rule = rule.replace(numNegationPattern, "- $1");
-    rule = rule.replace(oneMultiplicationPattern, "");
+function cleanGroundRuleString(ruleText) {
+    GROUND_RULE_STRING_REPLACEMENTS.forEach(function(replacementInfo) {
+        ruleText = ruleText.replace(replacementInfo[0], replacementInfo[1]);
+    });
 
-    // Gets rid of extra parents, removes not equals,
-    // changes negations, changes implies
-    rule = rule.replace(negationPattern, "!$1");
-    rule = rule.replace(openParenPattern, "");
-    rule = rule.replace(closeParenPattern, " $1");
-    rule = rule.replace(notEqualPattern, "");
-    rule = rule.replace(impliesPattern, "→");
-    rule = rule.replace(endingParenPattern, "");
-
-    return rule;
+    return ruleText;
 }
 
 // Given data and ground rule ID returns the rule in non-DNF form
 function createGroundRule(data, groundRuleID) {
     var groundRuleObject = data["groundRules"][groundRuleID];
-    var parentRule = data["rules"][groundRuleObject["ruleID"]]["text"];
+    var parentRule = data["rules"][groundRuleObject["ruleID"]]["cleanText"];
 
     // Create patterns to find predicate / constants and label to be placed
     // on them.
@@ -687,6 +710,7 @@ function createGroundRule(data, groundRuleID) {
     for (var i = 0; i < predicates.length; i++) {
         indicies.push(predicates[i].index);
     }
+
     for (var i = 0; i < constants.length; i++) {
         indicies.push(constants[i].index + 1)
     }
@@ -712,50 +736,23 @@ function createGroundRule(data, groundRuleID) {
     }
 
     // Get rid of all labels
-    var replaceLabelsPattern = new RegExp(nonVariableLabel,"g");
+    var replaceLabelsPattern = new RegExp(nonVariableLabel, "g");
     createdGroundRule = createdGroundRule.replace(replaceLabelsPattern, "");
 
-
-
     return {
-        "Ground Rule" : cleanRuleString(createdGroundRule),
+        "Ground Rule" : cleanGroundRuleString(createdGroundRule),
         "Dissatisfaction" : groundRuleObject["dissatisfaction"].toFixed(2),
         "id" : groundRuleID
     };
 }
 
-function handleFiles() {
-    let reader = new FileReader();
-    reader.onload = function(event) {
-        let text = event.target.result;
-        let json = JSON.parse(text);
-        init(json);
-    }
-
-    reader.readAsText(this.files[0]);
-}
-
-// Handles the splash screen functionallity.
-function launch() {
-    // Add change listener to input element
-    var input = document.querySelector('.psl-viz .psl-data-input');
-    input.addEventListener("change", handleFiles, false);
-}
-
 // Sets up the visualization itself:
 // Given a data file creates respective tables, charts, context handlers, etc.
 function init(data) {
-    console.log(data);
+    indexData(data);
 
-    for (key of Object.keys(data)) {
-        console.log(key);
-        for (strObjId in data[key]) {
-            let copy = data[key][strObjId];
-            delete data[key][strObjId];
-            intObjId = parseInt(strObjId);
-            data[key][intObjId] = copy;
-        }
-    }
+    // Save the data for debugging.
+    window.pslviz.data = data;
 
     // clear psl-viz DOM element for visualization
     const baseNode = document.getElementsByClassName("psl-viz")[0];
@@ -800,6 +797,29 @@ function init(data) {
     });
 }
 
+// Go through the data and pre-compute whatever we can.
+function indexData(data) {
+    for (let ruleID in data.rules) {
+        data.rules[ruleID].cleanText = cleanRuleString(data.rules[ruleID].text);
+    }
+
+    return data;
+}
+
+// Read the file in the file selector and load up the main UI.
+function handleDataFile() {
+    let reader = new FileReader();
+    reader.onload = function(event) {
+        let text = event.target.result;
+        let json = JSON.parse(text);
+        init(json);
+    }
+
+    reader.readAsText(this.files[0]);
+}
+
 $(document).ready(function() {
-    launch();
+    // Watch the file selector for a new data file.
+    let input = document.querySelector('.psl-viz .psl-data-input');
+    input.addEventListener("change", handleDataFile, false);
 });
