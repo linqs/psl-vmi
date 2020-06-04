@@ -9,7 +9,7 @@ const BAR_CHART_MARGIN = {
     left: 80
 };
 
-// TODO(eriq): Dynamic sizes.
+const MAX_BAR_CHART_WIDTH = 1000;
 const BAR_CHART_COL_WIDTH = 100;
 const BAR_CHART_HEIGHT = 400;
 const BAR_CHART_TRANSITION_DURATION = 1000;
@@ -123,7 +123,7 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
         });
     }
 
-    const outterWidth = data.length * BAR_CHART_COL_WIDTH;
+    const outterWidth = Math.min(MAX_BAR_CHART_WIDTH, data.length * BAR_CHART_COL_WIDTH);
     const outterHeight = BAR_CHART_HEIGHT;
 
     // The dimensions inside the margins.
@@ -176,7 +176,7 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
         .attr("transform", "translate(0," + innerHeight + ")")
         .call(xAxis)
         .selectAll("text")
-        .style("text-anchor", "end");
+        .style("text-anchor", "middle");
 
     // Y Axis
     svgTransformed.append("g")
