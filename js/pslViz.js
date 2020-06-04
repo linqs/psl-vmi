@@ -424,19 +424,6 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
     individualGroundRuleTable.insertBefore(aTag, containerDiv);
 }
 
-// TODO(eriq): This can probably be removed, looks like copy-pasta.
-function exists(container, item) {
-    let i = container.length;
-    while (i >= 0) {
-        if (item == container[i]) {
-            return true;
-        }
-        i--;
-    }
-
-    return false;
-}
-
 // Get the rule data needed for the Satisfaction module
 function readSatisfactionData(rules) {
     let ruleSatData = [];
