@@ -359,27 +359,23 @@ function createRuleOverviewTable(rules) {
     createTable(overviewData, overviewCols, RULE_OVERVIEW_TABLE_TITLE, RULE_OVERVIEW_MODULE);
 }
 
-function createAssociatedGroundAtomsTable(data, groundAtomKeyString) {
-    const groundAtom = parseInt(groundAtomKeyString);
-
-    // Create associtated ground rules list
-    let groundRuleObject = data["groundRules"];
+function createAssociatedGroundAtomsTable(data, groundAtomID, aggregateStats) {
     let associatedGroundRules = [];
-    for (groundRuleID in groundRuleObject){
-        if (groundRuleObject[groundRuleID]["groundAtoms"].includes(groundAtom)){
-            associatedGroundRules.push(createGroundRule(data, groundRuleID))
-        }
+    for (let ruleID in aggregateStats) {
+        aggregateStats[ruleID].groundRules.forEach(function(groundRuleID) {
+            associatedGroundRules.push(createGroundRule(data, groundRuleID));
+        });
     }
 
-    let tableTitle = data["groundAtoms"][groundAtom]["text"] + " " + ASSOCIATED_GROUND_RULES_TABLE_TITLE;
+    let tableTitle = data["groundAtoms"][groundAtomID]["text"] + " " + ASSOCIATED_GROUND_RULES_TABLE_TITLE;
     const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
     createTable(associatedGroundRules, associatedGroundRuleCols, tableTitle, GROUND_ATOM_RULES_MODULE);
 
-    // Add tablesorter to this new table
-    $(`.viz-module table.tablesorter`).tablesorter();
+    // Add tablesorter to this new table.
+    $(`.viz-module.${GROUND_ATOM_RULES_MODULE} table.tablesorter`).tablesorter();
 
     // Add context watcher / updater to this table
-    $('*[data-rule]').click(function() {
+    $(`.viz-module.${GROUND_ATOM_RULES_MODULE} table *[data-rule]`).click(function() {
         updateGroundRuleContext(data, this.dataset.rule);
     });
 }
@@ -468,8 +464,8 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
 
     let groundAtomID = parseInt(groundAtomKeyString);
 
-    let satData = fetchGroundAtomSatisfaction(data, groundAtomID);
-    let groundAtomSatData = readSatisfactionData(satData);
+    let aggregateStats = fetchGroundAtomSatisfaction(data, groundAtomID);
+    let groundAtomSatData = readSatisfactionData(aggregateStats);
 
     // Grab navbar and update navbar with new atom context
     let navbar = document.querySelector('.navbar');
@@ -481,7 +477,7 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     navbar.appendChild(link);
 
     // Create new associated ground rules table
-    createAssociatedGroundAtomsTable(data, groundAtomKeyString)
+    createAssociatedGroundAtomsTable(data, groundAtomID, aggregateStats)
 
     // Create Compatibility Chart with Ground Atom Context
     let barChartTitle = data["groundAtoms"][groundAtomID]["text"] + " " + RULE_SATISFACTION_CHART_TITLE;
@@ -665,8 +661,8 @@ function init(data) {
     $(`.viz-module table.tablesorter`).tablesorter();
 
     // Satisfaction Module
-    let satData = readSatisfactionData(data.rules);
-    setupBarChartModule(satData, DEF_BAR_CHART_X_LABEL,
+    let aggregateStats = readSatisfactionData(data.rules);
+    setupBarChartModule(aggregateStats, DEF_BAR_CHART_X_LABEL,
             DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
             RULE_SATISFACTION_MODULE, RULE_SATISFACTION_CHART_TITLE);
 
@@ -706,8 +702,9 @@ function fetchGroundAtomSatisfaction(data, groundAtomID) {
 
 // Compute rule-level aggregate statistics on the given ground rules.
 // If the filter exists and is falsy for a ground rule, don't count it.
+// If the filter exists and is truthy for a ground rule,
+// then (in additiona to normal behavior) the ID of that ground rule will be appended to 'groundRules'.
 function computeRuleAggregates(ruleIDs, groundRules, filterFunction) {
-    // {ruleID: {'satisfation': X, 'dissatisfaction': Y, 'count': Z}, ...}
     let stats = {};
 
     // Ensure that every rule gets an entry (in case there are no ground rules for some rule).
@@ -716,15 +713,20 @@ function computeRuleAggregates(ruleIDs, groundRules, filterFunction) {
             'satisfaction': 0.0,
             'dissatisfaction': 0.0,
             'count': 0,
+            'groundRules': [],
         };
     });
 
     for (const groundRuleID in groundRules) {
-        if (filterFunction && !filterFunction(groundRules[groundRuleID])) {
-            continue;
-        }
-
         let ruleID = groundRules[groundRuleID]['ruleID'];
+
+        if (filterFunction) {
+            if (filterFunction(groundRules[groundRuleID])) {
+                stats[ruleID]['groundRules'].push(groundRuleID);
+            } else {
+                continue;
+            }
+        }
 
         stats[ruleID]['dissatisfaction'] += groundRules[groundRuleID]['dissatisfaction'];
         stats[ruleID]['satisfaction'] += (1.0 - groundRules[groundRuleID]['dissatisfaction']);
