@@ -272,73 +272,15 @@ function createTable(data, columns, title, className) {
     return table;
 }
 
-// TODO(eriq): Clean up nav and hash.
-function createNavBar() {
-    let div = d3.select('.psl-viz').append('div');
-    div.classed("navbar", true);
-
-    // Add anchor points to the div
-    let mydiv = document.getElementsByClassName("navbar")[0];
-    let aTag = document.createElement('a');
-    aTag.classList.add(NAVBAR_MODEL_CONTEXT_CHANGER);
-    aTag.setAttribute('href',"#Model Context");
-    aTag.innerText = "Model";
-    mydiv.appendChild(aTag);
-
-    /*
-    // When the user scrolls the page, execute myFunction
-    window.onscroll = function() {myFunction()};
-
-    // Add the sticky class to the navbar when you reach its scroll position.
-    // Remove "sticky" when you leave the scroll position
-    function myFunction() {
-        let navbar = document.getElementsByClassName("navbar")[0];
-        let sticky = navbar.offsetTop;
-        if (window.pageYOffset >= sticky) {
-            navbar.classList.add("sticky")
-        }
-        else {
-            navbar.classList.remove("sticky");
-        }
-    }
-    */
-}
-
-function modelContextChangeHandler() {
-    // Remove ground atom and ground rule modules.
-    removeGroundAtomContext();
-    removeGroundRuleContext();
-}
-
 function removeGroundRuleContext() {
-    let groundRuleContextChanger = document.getElementsByClassName(NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
-    let groundRuleSatisfaction = document.getElementsByClassName(INDIVIDUAL_GROUND_RULE_MODULE);
-
-    if (groundRuleContextChanger.length != 0) {
-        groundRuleContextChanger[0].remove();
-    }
-
-    if (groundRuleSatisfaction.length != 0) {
-        groundRuleSatisfaction[0].remove();
-    }
+    $('.' + NAVBAR_GROUND_RULE_CONTEXT_CHANGER).remove();
+    $('.' + INDIVIDUAL_GROUND_RULE_MODULE).remove();
 }
 
 function removeGroundAtomContext() {
-    let groundAtomCompatability = document.getElementsByClassName(GROUND_ATOM_SATISFACTION_MODULE);
-    let groundAtomAssociatedRules = document.getElementsByClassName(GROUND_ATOM_RULES_MODULE);
-    let groundAtomContextChanger = document.getElementsByClassName(NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
-
-    if (groundAtomCompatability.length != 0) {
-        groundAtomCompatability[0].remove();
-    }
-
-    if (groundAtomAssociatedRules.length != 0) {
-        groundAtomAssociatedRules[0].remove();
-    }
-
-    if (groundAtomContextChanger.length != 0) {
-        groundAtomContextChanger[0].remove();
-    }
+    $('.' + GROUND_ATOM_SATISFACTION_MODULE).remove();
+    $('.' + GROUND_ATOM_RULES_MODULE).remove();
+    $('.' + NAVBAR_GROUND_ATOM_CONTEXT_CHANGER).remove();
 }
 
 // TODO: Better way to grab from JSON then what these functions do??
@@ -546,15 +488,13 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     let groundAtomSatData = readSatisfactionData(satData);
 
     // Grab navbar and update navbar with new atom context
-    let navbar = document.getElementsByClassName("navbar")[0];
-    let aTag = document.createElement('a');
-    aTag.classList.add(NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
-    aTag.setAttribute('href',"#Ground Atom Context");
-    aTag.innerText = data["groundAtoms"][groundAtomID]["text"];
-    aTag.onclick = function() {
-        removeGroundRuleContext();
-    };
-    navbar.appendChild(aTag);
+    let navbar = document.querySelector('.navbar');
+    let link = document.createElement('a');
+    link.classList.add(NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
+    link.setAttribute('href', '#');
+    link.innerText = data["groundAtoms"][groundAtomID]["text"];
+    link.onclick = removeGroundRuleContext;
+    navbar.appendChild(link);
 
     // Create new associated ground rules table
     createAssociatedGroundAtomsTable(data, groundAtomKeyString)
@@ -570,12 +510,12 @@ function updateGroundRuleContext(data, groundRuleKeyString) {
     removeGroundRuleContext();
 
     // Grab navbar and update navbar with new rule context
-    let navbar = document.getElementsByClassName("navbar")[0];
-    let aTag = document.createElement('a');
-    aTag.classList.add(NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
-    aTag.setAttribute('href',"#Ground Rule Context");
-    aTag.innerText = createGroundRule(data, groundRuleKeyString)["Ground Rule"];
-    navbar.appendChild(aTag);
+    let navbar = document.querySelector('.navbar');
+    let link = document.createElement('a');
+    link.classList.add(NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
+    link.setAttribute('href', '#');
+    link.innerText = createGroundRule(data, groundRuleKeyString)["Ground Rule"];
+    navbar.appendChild(link);
 
     // Create new individual ground rule
     createIndividualGroundRuleTable(data, groundRuleKeyString);
@@ -698,6 +638,23 @@ function createGroundRule(data, groundRuleID) {
     };
 }
 
+function createNavBar() {
+    let link = document.createElement('a');
+    link.classList.add(NAVBAR_MODEL_CONTEXT_CHANGER);
+    link.setAttribute('href', '#');
+    link.innerText = "Model";
+    link.onclick = function() {
+        removeGroundAtomContext();
+        removeGroundRuleContext();
+    };
+
+    let navbar = document.createElement('div');
+    navbar.classList.add('navbar');
+    navbar.appendChild(link);
+
+    document.querySelector('.psl-viz').appendChild(navbar);
+}
+
 // Sets up the visualization itself:
 // Given a data file creates respective tables, charts, context handlers, etc.
 function init(data) {
@@ -718,9 +675,6 @@ function init(data) {
 
     // Create the context navigation bar
     createNavBar()
-    $("." + NAVBAR_MODEL_CONTEXT_CHANGER).click(function() {
-        modelContextChangeHandler();
-    });
 
     createTruthTable(data);
     createViolationTable(data);
