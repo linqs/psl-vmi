@@ -1,5 +1,4 @@
-// TODO(eriq): Enable after violations are fixed.
-// 'use strict';
+'use strict';
 
 window.pslviz = window.pslviz || {};
 
@@ -282,7 +281,7 @@ function removeGroundAtomContext() {
 
 function createTruthTable(data) {
     let truthObjectList = [];
-    for (key in data["truthMap"]) {
+    for (const key in data["truthMap"]) {
         truthObjectList.push({
             "Prediction": data["groundAtoms"][key]["prediction"].toFixed(2),
             "Truth": data["truthMap"][key].toFixed(2),
@@ -307,20 +306,20 @@ function createTruthTable(data) {
 function createViolationTable(data) {
     // Find the correct data
     let rulesObject = data["rules"];
-    let groundRulesObject = data["groundRules"];
+    let groundRules = data["groundRules"];
+
     let violationObjectList = [];
-    for (ruleID in rulesObject) {
+    for (const ruleID in rulesObject) {
         if (rulesObject[ruleID]["weighted"] != false) {
             continue
         }
 
-        for (groundRuleID in groundRulesObject) {
-            if (groundRulesObject[groundRuleID]["ruleID"] == ruleID && groundRulesObject[groundRuleID]["dissatisfaction"] > 0) {
+        for (const groundRuleID in groundRules) {
+            if (groundRules[groundRuleID]["ruleID"] == ruleID && groundRules[groundRuleID]["dissatisfaction"] > 0) {
                 let violationObject = {
-                    //TODO: Constraints seem to never be in groundRules
+                    //TODO: Constraints seem to never be in groundRules.
                     "Violated Constraint": "",
-                    "Dissatisfaction":
-                        groundRulesObject[groundRuleID]["dissatisfaction"].toFixed(2)
+                    "Dissatisfaction": groundRules[groundRuleID]["dissatisfaction"].toFixed(2),
                 };
                 violationObjectList.push(violationObject);
             }
@@ -364,7 +363,7 @@ function createRuleOverviewTable(rules) {
 
 function createAssociatedGroundAtomsTable(data, groundAtomID, aggregateStats) {
     let associatedGroundRules = [];
-    for (let ruleID in aggregateStats) {
+    for (const ruleID in aggregateStats) {
         aggregateStats[ruleID].groundRules.forEach(function(groundRuleID) {
             associatedGroundRules.push(createGroundRule(data, groundRuleID));
         });
@@ -655,7 +654,7 @@ function init(data) {
     footer.style["position"] = "relative";
 
     // Create the context navigation bar
-    createNavBar()
+    createNavBar();
 
     createTruthTable(data);
     createViolationTable(data);
