@@ -13,22 +13,35 @@
     </head>
     <body>
         <div class="psl-viz">
-            <img src="assets/psl_logo.svg" alt="The PSL logo">
-            <div class="splash-info">
-                <h1> PSL Data Visualization </h1>
-                <h2> Created by the UCSC LINQS Lab </h2>
-                <p>
-                    A PSL Visualization that can be used for model understanding and debugging.
-                    The application is made up of multiple modules that convey information from
-                    different layers of a PSL model. These modules are organized by: model information,
-                    ground rule information, and ground atom information. We hope this tool can help
-                    PSL developers create the best models possible! The projects source code can be found
-                    on <a href="https://github.com/AaronRodden/PSLViz">Github</a>.
-                </p>
-                <p> Provide a .json file from a PSL run with the -viz flag </p>
-                <input type="file" class="psl-data-input">
+            <div class='splash'>
+                <img src="assets/psl_logo.svg" alt="The PSL logo">
+                <div class="splash-info">
+                    <h1> PSL Data Visualization </h1>
+                    <h2> Created by the UCSC LINQS Lab </h2>
+                    <p>
+                        A PSL Visualization that can be used for model understanding and debugging.
+                        The application is made up of multiple modules that convey information from
+                        different layers of a PSL model. These modules are organized by: model information,
+                        ground rule information, and ground atom information. We hope this tool can help
+                        PSL developers create the best models possible! The projects source code can be found
+                        on <a href="https://github.com/AaronRodden/PSLViz">Github</a>.
+                    </p>
+                    <p> Provide a .json file from a PSL run with the -viz flag </p>
+                    <input type="file" class="psl-data-input">
+                </div>
+            </div>
+
+            <div class='loading'>
+                <span>Rebuilding Model...</span>
+                <div class='animation'>
+                    <video autoplay loop muted playsinline>
+                        <source src="assets/linqs-logo-animation.webm" type="video/webm">
+                        <!-- <img src="assets/linqs-logo-animation.gif"> -->
+                    </video>
+                </div>
             </div>
         </div>
+
         <footer class="site-footer">
             <div class="wrapper">
                 <div class="simple-footer">

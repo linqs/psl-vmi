@@ -15,9 +15,6 @@ const BAR_CHART_COL_WIDTH = 100;
 const BAR_CHART_HEIGHT = 400;
 const BAR_CHART_TRANSITION_DURATION = 1000;
 
-const DIV_NAME = ".psl-viz";
-const DIV_CLASS = "viz-module";
-
 const NAVBAR_MODEL_CONTEXT_CHANGER = "navbar-model-context";
 const NAVBAR_GROUND_ATOM_CONTEXT_CHANGER = "navbar-ground-atom-context";
 const NAVBAR_GROUND_RULE_CONTEXT_CHANGER = "navbar-ground-rule-context";
@@ -219,8 +216,8 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
 }
 
 function createTable(data, columns, title, className) {
-	let div = d3.select(DIV_NAME).append('div');
-	div.classed(DIV_CLASS, true);
+	let div = d3.select('.psl-viz').append('div');
+	div.classed('viz-module', true);
     div.classed(className, true);
 
     let titleDiv = div.append('div');
@@ -532,8 +529,8 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions, classNam
         oldModule[0].remove();
     }
 
-    let div = d3.select(DIV_NAME).append("div");
-    div.classed(DIV_CLASS, true);
+    let div = d3.select('.psl-viz').append("div");
+    div.classed('viz-module', true);
 
     div.classed(className, true);
     let titleDiv = div.append('div');
@@ -651,10 +648,7 @@ function init(data) {
     window.pslviz.data = data;
 
     // clear psl-viz DOM element for visualization
-    const baseNode = document.getElementsByClassName("psl-viz")[0];
-    while (baseNode.firstChild) {
-        baseNode.removeChild(baseNode.lastChild);
-    }
+    $('.psl-viz').empty();
 
     // Change footer style so that it stays at bottom of page.
     let footer = document.querySelector(".site-footer");
@@ -783,6 +777,10 @@ function indexData(data) {
 
 // Read the file in the file selector and load up the main UI.
 function handleDataFile() {
+    // Activate the loading page.
+    $('.psl-viz .splash').hide();
+    $('.psl-viz .loading').show();
+
     let reader = new FileReader();
     reader.onload = function(event) {
         let text = event.target.result;

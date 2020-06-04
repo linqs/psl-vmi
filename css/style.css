@@ -25,6 +25,27 @@ th {
     height: 50px;
 }
 
+.psl-viz .loading {
+    display: none;
+
+    text-align: center;
+    font-size: 64px;
+}
+
+.psl-viz .loading .animation {
+    padding: 20px;
+    background-color: black;
+    border-radius: 20px;
+}
+
+.psl-viz .loading .animation video {
+    width: 300px;
+}
+
+.psl-viz .splash {
+    text-align: center;
+}
+
 .splash-info {
     text-align: center;
     display: block;
