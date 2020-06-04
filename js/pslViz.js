@@ -495,160 +495,62 @@ function exists(container, item) {
     return false;
 }
 
-// Compute the rule-level aggregate statistics and attatch them directly to the rule.
-function indexRules(data) {
-    const rules = data['rules'];
-    const groundRules = data['groundRules'];
-
-    // {ruleID: {'satisfation': X, 'dissatisfaction': Y, 'count': Z}, ...}
-    let stats = {};
-
-    // Ensure that every rule gets an entry (in case there are no ground rules for some rule).
-    for (const ruleID in rules) {
-        stats[ruleID] = {
-            'satisfaction': 0.0,
-            'dissatisfaction': 0.0,
-            'count': 0,
-        };
-    }
-
-    for (const groundRuleID in groundRules) {
-        let ruleID = groundRules[groundRuleID]['ruleID'];
-
-        stats[ruleID]['dissatisfaction'] += groundRules[groundRuleID]['dissatisfaction'];
-        stats[ruleID]['satisfaction'] += (1.0 - groundRules[groundRuleID]['dissatisfaction']);
-        stats[ruleID]['count']++;
-    }
-
-    let ruleIndex = 1;
-    for (const ruleID in rules) {
-        let meanDissatisfaction = 0.0;
-        let meanSatisfaction = 0.0;
-
-        if (stats[ruleID]['count'] != 0) {
-            meanDissatisfaction = stats[ruleID]['dissatisfaction'] / stats[ruleID]['count'];
-            meanSatisfaction = stats[ruleID]['satisfaction'] / stats[ruleID]['count'];
-        }
-
-        rules[ruleID]["index"] = ruleIndex;
-        rules[ruleID]["count"] = stats[ruleID]['count'];
-        rules[ruleID]["dissatisfaction"] = stats[ruleID]['dissatisfaction'];
-        rules[ruleID]["satisfaction"] = stats[ruleID]['satisfaction'];
-        rules[ruleID]["meanDissatisfaction"] = meanDissatisfaction;
-        rules[ruleID]["meanSatisfaction"] = meanSatisfaction;
-
-        ruleIndex++;
-    }
-}
-
-// Compute the rule statistics for each ground rule, the aggregated
-// statistics will be associated with the parent rule of each ground rule.
-// If the function is given a Ground Atom, then the function only computes the
-// aggregated statistics for each ground rule that contains the given ground atom.
-function computeRuleData(data, groundAtom) {
-    const rules = data["rules"];
-    const groundRules = data["groundRules"];
-
-    let satisfactionData = [];
-    let ruleIdentifier = 1;
-
-    for (const rule in rules) {
-        let totSat = 0;
-        let totDis = 0;
-        let ruleData = {};
-        let groundRuleCount = 0;
-
-        for (const groundRule in groundRules) {
-            if (groundRules[groundRule]["ruleID"] != rule) {
-                continue;
-            }
-
-            if (groundAtom == undefined) {
-                totSat += 1 - groundRules[groundRule]["dissatisfaction"];
-                totDis += groundRules[groundRule]["dissatisfaction"];
-                groundRuleCount++;
-            } else {
-                const groundAtoms = groundRules[groundRule]["groundAtoms"];
-                if (exists(groundAtoms, groundAtom)) {
-                    totSat += 1.0 - groundRules[groundRule]["dissatisfaction"];
-                    totDis += groundRules[groundRule]["dissatisfaction"];
-                    groundRuleCount++;
-                }
-            }
-        }
-
-        satMean = (groundRuleCount != 0 ? (totSat/groundRuleCount):(0));
-        disSatMean = (groundRuleCount != 0 ? (totDis/groundRuleCount):(0));
-        ruleData = {
-            "cleanText": rules[rule]["cleanText"],
-            "ID" : ruleIdentifier,
-            "Weighted" : rules[rule]["weighted"],
-            "Count" : rules[rule]["count"],
-            "Total Satisfaction": totSat,
-            "Mean Satisfaction": satMean,
-            "Total Dissatisfaction": totDis,
-            "Mean Dissatisfaction": disSatMean
-        };
-        ruleIdentifier++;
-        satisfactionData.push(ruleData);
-    }
-
-    return satisfactionData;
-}
-
 // Get the rule data needed for the Satisfaction module
-function readSatisfactionData(data) {
+function readSatisfactionData(rules) {
     let ruleSatData = [];
-    for (let i = 0; i < data.length; i++) {
-        let rule = data[i];
-        if (!rule["Weighted"]) {
+
+    for (const ruleID in rules) {
+        let rule = rules[ruleID];
+
+        if (!rule["weighted"]) {
             continue;
         }
 
-        let ruleData = {
-            "Rule" : rule["cleanText"],
-            "ID" : rule["ID"],
-            "Total Satisfaction": rule["Total Satisfaction"],
-            "Mean Satisfaction": rule["Mean Satisfaction"],
-            "Total Dissatisfaction": rule["Total Dissatisfaction"],
-            "Mean Dissatisfaction": rule["Mean Dissatisfaction"]
-        }
-        ruleSatData.push(ruleData);
+        ruleSatData.push({
+            "ID": rule["index"],
+            "Rule": rule["cleanText"],
+            "Total Dissatisfaction": rule["dissatisfaction"],
+            "Total Satisfaction": rule["satisfaction"],
+            "Mean Dissatisfaction": rule["meanDissatisfaction"],
+            "Mean Satisfaction": rule["meanSatisfaction"],
+        });
     }
 
     return ruleSatData;
 }
 
 // Get the rule data needed for the rule count module
-function readRuleCountData(data) {
+function readRuleCountData(rules) {
     let ruleCountData = [];
-    for (let i = 0; i < data.length; i++) {
-        let rule = data[i];
-        let ruleData = {
-            "Rule": rule["Rule"],
-            "Count": rule["Count"],
-            "ID" : rule["ID"]
-        }
-        ruleCountData.push(ruleData);
+
+    for (const ruleID in rules) {
+        let rule = rules[ruleID];
+
+        ruleCountData.push({
+            "ID": rule["index"],
+            "Rule": rule["cleanText"],
+            "Count": rule["count"],
+        });
     }
 
     return ruleCountData;
 }
 
 function updateGroundAtomContext(data, groundAtomKeyString) {
-    const groundAtom = parseInt(groundAtomKeyString);
-    let satData = computeRuleData(data, groundAtom);
-    let groundAtomSatData = readSatisfactionData(satData);
-
     removeGroundAtomContext();
     removeGroundRuleContext();
+
+    let groundAtomID = parseInt(groundAtomKeyString);
+
+    let satData = fetchGroundAtomSatisfaction(data, groundAtomID);
+    let groundAtomSatData = readSatisfactionData(satData);
 
     // Grab navbar and update navbar with new atom context
     let navbar = document.getElementsByClassName("navbar")[0];
     let aTag = document.createElement('a');
     aTag.classList.add(NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
     aTag.setAttribute('href',"#Ground Atom Context");
-    aTag.innerText = data["groundAtoms"][groundAtom]["text"];
+    aTag.innerText = data["groundAtoms"][groundAtomID]["text"];
     aTag.onclick = function() {
         removeGroundRuleContext();
     };
@@ -658,7 +560,7 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     createAssociatedGroundAtomsTable(data, groundAtomKeyString)
 
     // Create Compatibility Chart with Ground Atom Context
-    let barChartTitle = data["groundAtoms"][groundAtom]["text"] + " " + RULE_SATISFACTION_CHART_TITLE;
+    let barChartTitle = data["groundAtoms"][groundAtomID]["text"] + " " + RULE_SATISFACTION_CHART_TITLE;
     setupBarChartModule(groundAtomSatData, DEF_BAR_CHART_X_LABEL,
             DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
             GROUND_ATOM_SATISFACTION_MODULE, barChartTitle);
@@ -820,9 +722,6 @@ function init(data) {
         modelContextChangeHandler();
     });
 
-    // Compute all needed rule data and put into one object;
-    let overallRuleData = computeRuleData(data, undefined);
-
     createTruthTable(data);
     createViolationTable(data);
     createRuleOverviewTable(data.rules);
@@ -831,13 +730,13 @@ function init(data) {
     $(`.viz-module table.tablesorter`).tablesorter();
 
     // Satisfaction Module
-    let satData = readSatisfactionData(overallRuleData);
+    let satData = readSatisfactionData(data.rules);
     setupBarChartModule(satData, DEF_BAR_CHART_X_LABEL,
             DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
             RULE_SATISFACTION_MODULE, RULE_SATISFACTION_CHART_TITLE);
 
     // Rule Count Module
-    let ruleCountData = readRuleCountData(overallRuleData);
+    let ruleCountData = readRuleCountData(data.rules);
     setupBarChartModule(ruleCountData, DEF_BAR_CHART_X_LABEL,
             RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE,
             RULE_COUNT_CHART_TITLE);
@@ -846,6 +745,88 @@ function init(data) {
     $('*[data-atom]').click(function() {
         updateGroundAtomContext(data, this.dataset.atom);
     });
+}
+
+// Fetch the per-rule satisfaction data for a ground atom.
+// If the information does not exist, compute it, cache it, and return it.
+function fetchGroundAtomSatisfaction(data, groundAtomID) {
+    var stats = data.groundAtoms[groundAtomID]['satisfactionStats'];
+    if (stats) {
+        return stats;
+    }
+
+    stats = computeRuleAggregates(Object.keys(data.rules), data.groundRules, function(groundRule) {
+        return groundRule.groundAtoms.includes(groundAtomID);
+    });
+
+    for (const ruleID in data.rules) {
+        stats[ruleID]["index"] = data.rules[ruleID]['index'];
+        stats[ruleID]["weighted"] = data.rules[ruleID]['weighted'];
+    }
+
+    data.groundAtoms[groundAtomID]['satisfactionStats'] = stats;
+
+    return stats;
+}
+
+// Compute rule-level aggregate statistics on the given ground rules.
+// If the filter exists and is falsy for a ground rule, don't count it.
+function computeRuleAggregates(ruleIDs, groundRules, filterFunction) {
+    // {ruleID: {'satisfation': X, 'dissatisfaction': Y, 'count': Z}, ...}
+    let stats = {};
+
+    // Ensure that every rule gets an entry (in case there are no ground rules for some rule).
+    ruleIDs.forEach(function(ruleID) {
+        stats[ruleID] = {
+            'satisfaction': 0.0,
+            'dissatisfaction': 0.0,
+            'count': 0,
+        };
+    });
+
+    for (const groundRuleID in groundRules) {
+        if (filterFunction && !filterFunction(groundRules[groundRuleID])) {
+            continue;
+        }
+
+        let ruleID = groundRules[groundRuleID]['ruleID'];
+
+        stats[ruleID]['dissatisfaction'] += groundRules[groundRuleID]['dissatisfaction'];
+        stats[ruleID]['satisfaction'] += (1.0 - groundRules[groundRuleID]['dissatisfaction']);
+        stats[ruleID]['count']++;
+    }
+
+    ruleIDs.forEach(function(ruleID) {
+        let meanDissatisfaction = 0.0;
+        let meanSatisfaction = 0.0;
+
+        if (stats[ruleID]['count'] != 0) {
+            meanDissatisfaction = stats[ruleID]['dissatisfaction'] / stats[ruleID]['count'];
+            meanSatisfaction = stats[ruleID]['satisfaction'] / stats[ruleID]['count'];
+        }
+
+        stats[ruleID]['meanDissatisfaction'] = meanDissatisfaction;
+        stats[ruleID]['meanSatisfaction'] = meanSatisfaction;
+    });
+
+    return stats;
+}
+
+// Compute the rule-level aggregate statistics and attatch them directly to the rule.
+function indexRules(data) {
+    let stats = computeRuleAggregates(Object.keys(data.rules), data.groundRules, null);
+
+    let ruleIndex = 1;
+    for (const ruleID in data.rules) {
+        data.rules[ruleID]["index"] = ruleIndex;
+        data.rules[ruleID]["count"] = stats[ruleID]['count'];
+        data.rules[ruleID]["dissatisfaction"] = stats[ruleID]['dissatisfaction'];
+        data.rules[ruleID]["satisfaction"] = stats[ruleID]['satisfaction'];
+        data.rules[ruleID]["meanDissatisfaction"] = stats[ruleID]['meanDissatisfaction'];
+        data.rules[ruleID]["meanSatisfaction"] = stats[ruleID]['meanSatisfaction'];
+
+        ruleIndex++;
+    }
 }
 
 // Go through the data and pre-compute whatever we can.
