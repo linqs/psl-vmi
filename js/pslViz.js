@@ -1,3 +1,6 @@
+// TODO(eriq): Enable after violations are fixed.
+// 'use strict';
+
 window.pslviz = window.pslviz || {};
 
 const BAR_CHART_MARGIN = {
@@ -78,19 +81,17 @@ const GROUND_RULE_STRING_REPLACEMENTS = [
 ];
 
 function updateBarChart(chart, data, newYVal) {
-
-    // calling update
     chart.yAxisLabel = newYVal;
     transformBarChart(chart, data);
 }
 
 function transformBarChart(chart, barData) {
-    var data = [];
-    for (var i = 1; i < barData.length+1; i++) {
-        var datum = {};
-        datum.ruleNo = barData[i-1]["ID"];
-        datum.value = barData[i-1][chart.yAxisLabel];
-        data.push(datum);
+    let data = [];
+    for (let i = 1; i < barData.length + 1; i++) {
+        data.push({
+            'ruleNo': barData[i-1]["ID"],
+            'value': barData[i-1][chart.yAxisLabel],
+        });
     }
 
     // Redefine the scale for y axis
@@ -114,18 +115,16 @@ function transformBarChart(chart, barData) {
         .attr("x", function(row) { return chart.xScale(row.ruleNo); })
         .attr("width", chart.xScale.rangeBand())
         .attr("y", function(row) { return chart.yScale(row.value); })
-        .attr("height", function(row) { return chart.innerHeight -
-                chart.yScale(row.value);
-        });
+        .attr("height", function(row) { return chart.innerHeight - chart.yScale(row.value); });
 }
 
 function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
-    var data = [];
-    for (var i = 1; i < chartData.length + 1; i++) {
-        var row = {};
-        row.ruleNo = chartData[i - 1]["ID"];
-        row.value = chartData[i - 1][yAxisLabel];
-        data.push(row);
+    let data = [];
+    for (let i = 1; i < chartData.length + 1; i++) {
+        data.push({
+            'ruleNo': chartData[i - 1]["ID"],
+            'value': chartData[i - 1][yAxisLabel],
+        });
     }
 
     const outterWidth = data.length * BAR_CHART_COL_WIDTH;
@@ -135,25 +134,25 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
     const innerWidth = outterWidth - BAR_CHART_MARGIN.left - BAR_CHART_MARGIN.right;
     const innerHeight = outterHeight - BAR_CHART_MARGIN.top - BAR_CHART_MARGIN.bottom;
 
-    var xScale = d3.scale.ordinal()
+    let xScale = d3.scale.ordinal()
         .domain(data.map(function (d) { return d.ruleNo; }))
-        .rangeBands([0, innerWidth], .2);
+        .rangeBands([0, innerWidth], 0.2);
 
-    var yScale = d3.scale.linear()
+    let yScale = d3.scale.linear()
         .domain([0, d3.max(data, function (d) { return d.value; })])
         .range([innerHeight, 0]);
 
-    var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
-    var yAxis = d3.svg.axis().scale(yScale).orient("left");
+    let xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+    let yAxis = d3.svg.axis().scale(yScale).orient("left");
 
     const svgTranslation = "translate(" + BAR_CHART_MARGIN.left + "," + BAR_CHART_MARGIN.top + ")";
 
-    var svg = div.append("svg")
+    let svg = div.append("svg")
         .attr("width", outterWidth)
-        .attr("height", outterHeight);
-    svg.classed(chartId, true);
+        .attr("height", outterHeight)
+        .classed(chartId, true);
 
-    var svgTransformed = svg.append("g")
+    let svgTransformed = svg.append("g")
         .attr("transform", svgTranslation);
 
     // Y Axis Label
@@ -167,8 +166,8 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
         .text(yAxisLabel);
 
     // X Axis Label
-    const xAxisLabelTranslation = "translate(" + (innerWidth / 2) + " ," +
-        (innerHeight + BAR_CHART_MARGIN.bottom) + ")";
+    const xAxisLabelTranslation = "translate(" + (innerWidth / 2) + " ," + (innerHeight + BAR_CHART_MARGIN.bottom) + ")";
+
     svgTransformed.append("text")
         .attr("class", "x-label")
         .attr("transform", xAxisLabelTranslation)
@@ -193,7 +192,7 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
         .attr("dy", "1em")
         .style("text-anchor", "end");
 
-    var bars = svgTransformed.selectAll("bar")
+    let bars = svgTransformed.selectAll("bar")
         .data(data)
         .enter().append("rect")
         .attr("class", "bar")
@@ -220,7 +219,7 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
 }
 
 function createTable(data, columns, title, className) {
-	var div = d3.select(DIV_NAME).append('div');
+	let div = d3.select(DIV_NAME).append('div');
 	div.classed(DIV_CLASS, true);
     div.classed(className, true);
 
@@ -231,32 +230,32 @@ function createTable(data, columns, title, className) {
     let tableDiv = div.append('div');
     tableDiv.classed('table-container', true);
 
-	var table = tableDiv.append('table')
+	let table = tableDiv.append('table')
     .attr("class", "tablesorter")
     table.append("thead").append("tr");
 
-    var headers = table.select("tr").selectAll("th")
+    let headers = table.select("tr").selectAll("th")
         .data(columns)
         .enter()
         .append("th")
         .text(function(d) { return d; });
 
 	// create a row for each object in the data
-	var rows = table.append("tbody").selectAll('tr')
+	let rows = table.append("tbody").selectAll('tr')
         .data(data)
         .enter()
-        .append('tr')
+        .append('tr');
+
     // TODO: Right now this is how im handling two tables that require
     // different functionallity on row click. Perhaps this should be changed?
     if (className == GROUND_ATOM_RULES_MODULE) {
         rows.attr('data-rule', function (row) { return row.id; });
-    }
-    else if (className == TRUTH_TABLE_MODULE || INDIVIDUAL_GROUND_RULE_MODULE) {
+    } else if (className == TRUTH_TABLE_MODULE || INDIVIDUAL_GROUND_RULE_MODULE) {
         rows.attr('data-atom', function(atom) { return atom.id; });
     }
 
 	// create a cell in each row for each column
-	var cells = rows.selectAll('td')
+	let cells = rows.selectAll('td')
         .data(function (row) {
             return columns.map(function (column) {
                 return {
@@ -270,29 +269,31 @@ function createTable(data, columns, title, className) {
         .append('td')
         .text(function(row) { return row.value; });
 
-  return table;
+    return table;
 }
 
+// TODO(eriq): Clean up nav and hash.
 function createNavBar() {
-    var div = d3.select('.psl-viz').append('div');
+    let div = d3.select('.psl-viz').append('div');
     div.classed("navbar", true);
 
     // Add anchor points to the div
-    var mydiv = document.getElementsByClassName("navbar")[0];
-    var aTag = document.createElement('a');
+    let mydiv = document.getElementsByClassName("navbar")[0];
+    let aTag = document.createElement('a');
     aTag.classList.add(NAVBAR_MODEL_CONTEXT_CHANGER);
     aTag.setAttribute('href',"#Model Context");
     aTag.innerText = "Model";
     mydiv.appendChild(aTag);
 
+    /*
     // When the user scrolls the page, execute myFunction
     window.onscroll = function() {myFunction()};
 
     // Add the sticky class to the navbar when you reach its scroll position.
     // Remove "sticky" when you leave the scroll position
     function myFunction() {
-        var navbar = document.getElementsByClassName("navbar")[0];
-        var sticky = navbar.offsetTop;
+        let navbar = document.getElementsByClassName("navbar")[0];
+        let sticky = navbar.offsetTop;
         if (window.pageYOffset >= sticky) {
             navbar.classList.add("sticky")
         }
@@ -300,6 +301,7 @@ function createNavBar() {
             navbar.classList.remove("sticky");
         }
     }
+    */
 }
 
 function modelContextChangeHandler() {
@@ -342,16 +344,16 @@ function removeGroundAtomContext() {
 // TODO: Better way to grab from JSON then what these functions do??
 function createTruthTable(data) {
     // Find the correct data
-    var truthObjectList = [];
+    let truthObjectList = [];
     for (key in data["truthMap"]) {
-        var truthObject = {
+        let truthObject = {
             "Prediction": data["groundAtoms"][key]["prediction"].toFixed(2),
             "Truth": data["truthMap"][key].toFixed(2),
             "Predicate": data["groundAtoms"][key]["text"],
             "Difference" : Math.abs(data["truthMap"][key] -
                     data["groundAtoms"][key]["prediction"]).toFixed(2),
             "id": key,
-        }
+        };
         truthObjectList.push(truthObject);
     }
 
@@ -362,9 +364,9 @@ function createTruthTable(data) {
 
 function createViolationTable(data) {
     // Find the correct data
-    var rulesObject = data["rules"];
-    var groundRulesObject = data["groundRules"];
-    var violationObjectList = [];
+    let rulesObject = data["rules"];
+    let groundRulesObject = data["groundRules"];
+    let violationObjectList = [];
     for (ruleID in rulesObject) {
         if (rulesObject[ruleID]["weighted"] != false) {
             continue
@@ -372,7 +374,7 @@ function createViolationTable(data) {
 
         for (groundRuleID in groundRulesObject) {
             if (groundRulesObject[groundRuleID]["ruleID"] == ruleID && groundRulesObject[groundRuleID]["dissatisfaction"] > 0) {
-                var violationObject = {
+                let violationObject = {
                     //TODO: Constraints seem to never be in groundRules
                     "Violated Constraint": "",
                     "Dissatisfaction":
@@ -393,10 +395,10 @@ function createViolationTable(data) {
 // Create a table that gives an overview for all rules
 function createRuleOverviewTable(data) {
     // Bring Sat/Dis data to 2nd decimal place and gather all rule data
-    var overviewData = [];
-    for (var i = 0; i < data.length; i++) {
-        var rule = data[i];
-        var ruleData = {
+    let overviewData = [];
+    for (let i = 0; i < data.length; i++) {
+        let rule = data[i];
+        let ruleData = {
             "ID" : rule["ID"],
             "Rule" : rule["cleanText"],
             "Weighted" : rule["Weighted"],
@@ -421,19 +423,19 @@ function createRuleOverviewTable(data) {
 
 function createAssociatedGroundAtomsTable(data, groundAtomKeyString) {
     const groundAtom = parseInt(groundAtomKeyString);
+
     // Create associtated ground rules list
-    var groundRuleObject = data["groundRules"];
-    var associatedGroundRules = [];
+    let groundRuleObject = data["groundRules"];
+    let associatedGroundRules = [];
     for (groundRuleID in groundRuleObject){
         if (groundRuleObject[groundRuleID]["groundAtoms"].includes(groundAtom)){
             associatedGroundRules.push(createGroundRule(data, groundRuleID))
         }
     }
-    let tableTitle = data["groundAtoms"][groundAtom]["text"] + " " +
-            ASSOCIATED_GROUND_RULES_TABLE_TITLE;
+
+    let tableTitle = data["groundAtoms"][groundAtom]["text"] + " " + ASSOCIATED_GROUND_RULES_TABLE_TITLE;
     const associatedGroundRuleCols = ["Ground Rule", "Dissatisfaction"];
-    createTable(associatedGroundRules, associatedGroundRuleCols, tableTitle,
-            GROUND_ATOM_RULES_MODULE);
+    createTable(associatedGroundRules, associatedGroundRuleCols, tableTitle, GROUND_ATOM_RULES_MODULE);
 
     // Add tablesorter to this new table
     $(`.viz-module table.tablesorter`).tablesorter();
@@ -447,58 +449,57 @@ function createAssociatedGroundAtomsTable(data, groundAtomKeyString) {
 function createIndividualGroundRuleTable(data, groundRuleKeyString) {
     // convert rule string id to int id
     const groundRuleID = parseInt(groundRuleKeyString);
-    var groundAtomObject = data["groundAtoms"];
-    var groundRule = data["groundRules"][groundRuleKeyString];
+    let groundAtomObject = data["groundAtoms"];
+    let groundRule = data["groundRules"][groundRuleKeyString];
 
-    atomElementList = []
-    for (var i = 0; i < groundRule["groundAtoms"].length; i++) {
-        var atomID  = groundRule["groundAtoms"][i];
-        var tableElem = {
+    let atomElementList = []
+    for (let i = 0; i < groundRule["groundAtoms"].length; i++) {
+        let atomID  = groundRule["groundAtoms"][i];
+        let tableElem = {
             "Ground Atom" : groundAtomObject[atomID]["text"],
             "Truth Value" : groundAtomObject[atomID]["prediction"].toFixed(2),
             "id" : atomID
         }
         atomElementList.push(tableElem);
     }
+
     let tableTitle = createGroundRule(data, groundRuleID)["Ground Rule"];
     const atomCols = ["Ground Atom", "Truth Value"];
-    createTable(atomElementList, atomCols, tableTitle,
-            INDIVIDUAL_GROUND_RULE_MODULE);
+    createTable(atomElementList, atomCols, tableTitle, INDIVIDUAL_GROUND_RULE_MODULE);
 
     // Add tablesorter to this new table
     $(`.viz-module table.tablesorter`).tablesorter();
+
     // Set click handler for ground atoms in the ground rule
     $('*[data-atom]').click(function() {
         updateGroundAtomContext(data, this.dataset.atom);
     });
 
     // Insert Satisfaction value as a DOM element
-    var individualGroundRuleTable = document.getElementsByClassName(
-            INDIVIDUAL_GROUND_RULE_MODULE)[0];
-    var containerDiv = individualGroundRuleTable.getElementsByClassName(
-            "table-container")[0];
-    var aTag = document.createElement('a');
-    aTag.innerText = "Rule Satisfaction: " +
-            (1 - groundRule["dissatisfaction"]).toFixed(2);
+    let individualGroundRuleTable = document.getElementsByClassName(INDIVIDUAL_GROUND_RULE_MODULE)[0];
+    let containerDiv = individualGroundRuleTable.getElementsByClassName("table-container")[0];
+    let aTag = document.createElement('a');
+    aTag.innerText = "Rule Satisfaction: " + (1 - groundRule["dissatisfaction"]).toFixed(2);
     individualGroundRuleTable.insertBefore(aTag, containerDiv);
 }
 
+// TODO(eriq): This can probably be removed, looks like copy-pasta.
 function exists(container, item) {
-    var i = container.length;
-    while ( i >= 0 ) {
-        if ( item == container[i] ) {
+    let i = container.length;
+    while (i >= 0) {
+        if (item == container[i]) {
             return true;
         }
         i--;
     }
+
     return false;
 }
 
 // Compute the rule statistics for each ground rule, the aggregated
 // statistics will be associated with the parent rule of each ground rule.
 // If the function is given a Ground Atom, then the function only computes the
-// aggregated statistics for each ground rule that contains the given ground
-// atom.
+// aggregated statistics for each ground rule that contains the given ground atom.
 function computeRuleData(data, groundAtom) {
     const rules = data["rules"];
     const groundRules = data["groundRules"];
@@ -512,24 +513,25 @@ function computeRuleData(data, groundAtom) {
         let totDis = 0;
         let ruleData = {};
         let groundRuleCount = 0;
-        for ( groundRule in groundRules ) {
-            if ( groundRules[groundRule]["ruleID"] == rule ) {
-                if ( groundAtom == undefined ) {
-                    totSat += 1 - groundRules[groundRule]["dissatisfaction"];
+        for (let groundRule in groundRules) {
+            if (groundRules[groundRule]["ruleID"] != rule) {
+                continue;
+            }
+
+            if (groundAtom == undefined) {
+                totSat += 1 - groundRules[groundRule]["dissatisfaction"];
+                totDis += groundRules[groundRule]["dissatisfaction"];
+                groundRuleCount++;
+            } else {
+                const groundAtoms = groundRules[groundRule]["groundAtoms"];
+                if (exists(groundAtoms, groundAtom)) {
+                    totSat += 1.0 - groundRules[groundRule]["dissatisfaction"];
                     totDis += groundRules[groundRule]["dissatisfaction"];
                     groundRuleCount++;
                 }
-                else {
-                    const groundAtoms = groundRules[groundRule]["groundAtoms"];
-                    if ( exists(groundAtoms, groundAtom) ) {
-                        totSat += 1 -
-                                groundRules[groundRule]["dissatisfaction"];
-                        totDis += groundRules[groundRule]["dissatisfaction"];
-                        groundRuleCount++;
-                    }
-                }
             }
         }
+
         satMean = (groundRuleCount != 0 ? (totSat/groundRuleCount):(0));
         disSatMean = (groundRuleCount != 0 ? (totDis/groundRuleCount):(0));
         ruleData = {
@@ -545,41 +547,46 @@ function computeRuleData(data, groundAtom) {
         ruleIdentifier++;
         satisfactionData.push(ruleData);
     }
+
     return satisfactionData;
 }
 
 // Get the rule data needed for the Satisfaction module
 function readSatisfactionData(data) {
-    var ruleSatData = [];
-    for (var i = 0; i < data.length; i++) {
-        var rule = data[i];
-        if (rule["Weighted"] == true) {
-            var ruleData = {
-                "Rule" : rule["cleanText"],
-                "ID" : rule["ID"],
-                "Total Satisfaction": rule["Total Satisfaction"],
-                "Mean Satisfaction": rule["Mean Satisfaction"],
-                "Total Dissatisfaction": rule["Total Dissatisfaction"],
-                "Mean Dissatisfaction": rule["Mean Dissatisfaction"]
-            }
-            ruleSatData.push(ruleData);
+    let ruleSatData = [];
+    for (let i = 0; i < data.length; i++) {
+        let rule = data[i];
+        if (!rule["Weighted"]) {
+            continue;
         }
+
+        let ruleData = {
+            "Rule" : rule["cleanText"],
+            "ID" : rule["ID"],
+            "Total Satisfaction": rule["Total Satisfaction"],
+            "Mean Satisfaction": rule["Mean Satisfaction"],
+            "Total Dissatisfaction": rule["Total Dissatisfaction"],
+            "Mean Dissatisfaction": rule["Mean Dissatisfaction"]
+        }
+        ruleSatData.push(ruleData);
     }
+
     return ruleSatData;
 }
 
 // Get the rule data needed for the rule count module
 function readRuleCountData(data) {
-    var ruleCountData = [];
-    for (var i = 0; i < data.length; i++) {
-        var rule = data[i];
-        var ruleData = {
+    let ruleCountData = [];
+    for (let i = 0; i < data.length; i++) {
+        let rule = data[i];
+        let ruleData = {
             "Rule": rule["Rule"],
             "Count": rule["Count"],
             "ID" : rule["ID"]
         }
         ruleCountData.push(ruleData);
     }
+
     return ruleCountData;
 }
 
@@ -592,14 +599,14 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     removeGroundRuleContext();
 
     // Grab navbar and update navbar with new atom context
-    var navbar = document.getElementsByClassName("navbar")[0];
-    var aTag = document.createElement('a');
+    let navbar = document.getElementsByClassName("navbar")[0];
+    let aTag = document.createElement('a');
     aTag.classList.add(NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
     aTag.setAttribute('href',"#Ground Atom Context");
     aTag.innerText = data["groundAtoms"][groundAtom]["text"];
     aTag.onclick = function() {
         removeGroundRuleContext();
-    }
+    };
     navbar.appendChild(aTag);
 
     // Create new associated ground rules table
@@ -616,8 +623,8 @@ function updateGroundRuleContext(data, groundRuleKeyString) {
     removeGroundRuleContext();
 
     // Grab navbar and update navbar with new rule context
-    var navbar = document.getElementsByClassName("navbar")[0];
-    var aTag = document.createElement('a');
+    let navbar = document.getElementsByClassName("navbar")[0];
+    let aTag = document.createElement('a');
     aTag.classList.add(NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
     aTag.setAttribute('href',"#Ground Rule Context");
     aTag.innerText = createGroundRule(data, groundRuleKeyString)["Ground Rule"];
@@ -629,20 +636,19 @@ function updateGroundRuleContext(data, groundRuleKeyString) {
 
 function createMenu(options, defaultValue, moduleName, div) {
     const menuId = moduleName + "-menu";
-    var select = div.append("select");
+    let select = div.append("select");
     select.classed(menuId, true);
 
-    var menu = document.getElementsByClassName(menuId)[0];
-    var index = 0;
-    while ( index < options.length ) {
-        var menuOption = document.createElement("option");
+    let menu = document.getElementsByClassName(menuId)[0];
+    for (let index = 0; index < options.length; index++) {
+        let menuOption = document.createElement("option");
         menuOption.text = options[index];
         menu.options.add(menuOption);
-        if ( options[index] == defaultValue ) {
+        if (options[index] == defaultValue) {
             menu.options.selectedIndex = index;
         }
-        index++;
     }
+
     return menuId;
 }
 
@@ -652,7 +658,7 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions, classNam
         oldModule[0].remove();
     }
 
-    var div = d3.select(DIV_NAME).append("div");
+    let div = d3.select(DIV_NAME).append("div");
     div.classed(DIV_CLASS, true);
 
     div.classed(className, true);
@@ -660,12 +666,12 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions, classNam
     titleDiv.attr('class', 'title');
     titleDiv.text(title);
 
-    var menuId = undefined;
+    let menuId = undefined;
     if (menuOptions != undefined) {
         menuId = createMenu(menuOptions, yAxisLabel, className, div);
     }
 
-    var chart = createBarChart(data, div, xAxisLabel, yAxisLabel, className);
+    let chart = createBarChart(data, div, xAxisLabel, yAxisLabel, className);
     if (menuId != undefined) {
         document.getElementsByClassName(menuId)[0].onchange = function () {
             let newVal = document.getElementsByClassName(menuId)[0].value;
@@ -692,26 +698,26 @@ function cleanGroundRuleString(ruleText) {
 
 // Given data and ground rule ID returns the rule in non-DNF form
 function createGroundRule(data, groundRuleID) {
-    var groundRuleObject = data["groundRules"][groundRuleID];
-    var parentRule = data["rules"][groundRuleObject["ruleID"]]["cleanText"];
+    let groundRuleObject = data["groundRules"][groundRuleID];
+    let parentRule = data["rules"][groundRuleObject["ruleID"]]["cleanText"];
 
     // Create patterns to find predicate / constants and label to be placed
     // on them.
-    var predicatePattern = new RegExp("\\w+\\s*\\(","g");
-    var constantPattern = new RegExp("\\'\\w+\\'", "g");
-    var nonVariableLabel = "__0_";
+    let predicatePattern = new RegExp("\\w+\\s*\\(","g");
+    let constantPattern = new RegExp("\\'\\w+\\'", "g");
+    let nonVariableLabel = "__0_";
 
     // Find all instances of predicates and constants in the parent rule
     let predicates = [...parentRule.matchAll(predicatePattern)];
     let constants = [...parentRule.matchAll(constantPattern)];
 
     // Collect indicies for all predicates and constants so we can label them
-    var indicies = []
-    for (var i = 0; i < predicates.length; i++) {
+    let indicies = []
+    for (let i = 0; i < predicates.length; i++) {
         indicies.push(predicates[i].index);
     }
 
-    for (var i = 0; i < constants.length; i++) {
+    for (let i = 0; i < constants.length; i++) {
         indicies.push(constants[i].index + 1)
     }
 
@@ -719,24 +725,23 @@ function createGroundRule(data, groundRuleID) {
     indicies = indicies.sort((a, b) => b - a);
 
     // Apply the labels to a copy of the parent rule
-    var createdGroundRule = parentRule;
-    for (var i = 0; i < indicies.length; i++) {
-        var index = indicies[i];
-        createdGroundRule = createdGroundRule.slice(0, index)
-                + nonVariableLabel + createdGroundRule.slice(index);
+    let createdGroundRule = parentRule;
+    for (let i = 0; i < indicies.length; i++) {
+        let index = indicies[i];
+        createdGroundRule = createdGroundRule.slice(0, index) + nonVariableLabel + createdGroundRule.slice(index);
     }
 
     // Replace all variables in the labeled parent rule
     let varConstList = Object.entries(groundRuleObject["constants"]);
     for (let [variable, constant] of varConstList) {
-        var re = new RegExp("\\b"+variable+"\\b","g");
+        let re = new RegExp("\\b"+variable+"\\b","g");
         // Add surrounding single quotes to variables
         constant = "\'" + constant + "\'";
         createdGroundRule = createdGroundRule.replace(re, constant);
     }
 
     // Get rid of all labels
-    var replaceLabelsPattern = new RegExp(nonVariableLabel, "g");
+    let replaceLabelsPattern = new RegExp(nonVariableLabel, "g");
     createdGroundRule = createdGroundRule.replace(replaceLabelsPattern, "");
 
     return {
@@ -760,7 +765,7 @@ function init(data) {
         baseNode.removeChild(baseNode.lastChild);
     }
     // Change footer style so that it stays at bottom of page
-    var footer = document.getElementsByClassName("site-footer")[0];
+    let footer = document.getElementsByClassName("site-footer")[0];
     footer.style["position"] = "unset";
 
     // Create the context navigation bar
@@ -770,7 +775,7 @@ function init(data) {
     });
 
     // Compute all needed rule data and put into one object;
-    var overallRuleData = computeRuleData(data, undefined);
+    let overallRuleData = computeRuleData(data, undefined);
 
     createTruthTable(data);
     createViolationTable(data);
