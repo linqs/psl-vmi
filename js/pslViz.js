@@ -23,15 +23,15 @@ const TRUTH_TABLE_MODULE = "module-truth-table";
 const TRUTH_TABLE_TITLE = "Truth Table";
 const VIOLATED_GROUND_RULES_MODULE = "module-violation-table";
 const VIOLATED_GROUND_RULES_TABLE_TITLE = "Violated Constraints";
-const GROUND_ATOM_SATISFACTION_MODULE = "module-ground-atom-compatability-chart";
+const GROUND_ATOM_SATISFACTION_MODULE = "module-ground-atom-compatibility-chart";
 const GROUND_ATOM_RULES_MODULE = "module-associated-rules-table";
 const ASSOCIATED_GROUND_RULES_TABLE_TITLE = "Associated Ground Rules";
 const INDIVIDUAL_GROUND_RULE_MODULE = "module-individual-ground-rule-table";
 const RULE_COUNT_MODULE = "module-rulecount-chart";
 const RULE_COUNT_Y_LABEL = "Count";
 const RULE_COUNT_CHART_TITLE = "Ground Rule Count";
-const RULE_SATISFACTION_MODULE = "module-compatability-chart";
-const RULE_SATISFACTION_CHART_TITLE = "Rule Compatability";
+const RULE_SATISFACTION_MODULE = "module-compatibility-chart";
+const RULE_SATISFACTION_CHART_TITLE = "Rule Compatibility";
 const DEF_BAR_CHART_X_LABEL = "Rule";
 const DEF_SATISFACTION_Y_LABEL = "Total Satisfaction";
 const SATISFACTION_Y_LABELS = [
@@ -243,7 +243,7 @@ function createTable(data, columns, title, className) {
         .append('tr');
 
     // TODO: Right now this is how im handling two tables that require
-    // different functionallity on row click. Perhaps this should be changed?
+    // different functionality on row click. Perhaps this should be changed?
     if (className == GROUND_ATOM_RULES_MODULE) {
         rows.attr('data-rule', function (row) { return row.id; });
     } else if (className == TRUTH_TABLE_MODULE || INDIVIDUAL_GROUND_RULE_MODULE) {
@@ -296,8 +296,8 @@ function createTruthTable(data) {
     createTable(truthObjectList, predictionTruthCols, TRUTH_TABLE_TITLE, TRUTH_TABLE_MODULE);
 
     // Set context handler for all the truth atoms.
-    // Note that we use a delagate (attaching a handler to the table's body)
-    // instead of directly attatching a handler to each row.
+    // Note that we use a delegate (attaching a handler to the table's body)
+    // instead of directly attaching a handler to each row.
     $(`.psl-viz .${TRUTH_TABLE_MODULE} table tbody`).on('click', 'tr', function() {
         updateGroundAtomContext(data, this.dataset.atom);
     });
@@ -377,8 +377,8 @@ function createAssociatedGroundAtomsTable(data, groundAtomID, aggregateStats) {
     $(`.viz-module.${GROUND_ATOM_RULES_MODULE} table.tablesorter`).tablesorter();
 
     // Set context handler for all the ground rules.
-    // Note that we use a delagate (attaching a handler to the table's body)
-    // instead of directly attatching a handler to each row.
+    // Note that we use a delegate (attaching a handler to the table's body)
+    // instead of directly attaching a handler to each row.
     $(`.viz-module.${GROUND_ATOM_RULES_MODULE} table tbody`).on('click', 'tr', function() {
         updateGroundRuleContext(data, this.dataset.rule);
     });
@@ -409,8 +409,8 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
     $(`.psl-viz .${INDIVIDUAL_GROUND_RULE_MODULE} table.tablesorter`).tablesorter();
 
     // Set context handler for all the ground atoms.
-    // Note that we use a delagate (attaching a handler to the table's body)
-    // instead of directly attatching a handler to each row.
+    // Note that we use a delegate (attaching a handler to the table's body)
+    // instead of directly attaching a handler to each row.
     $(`.psl-viz .${INDIVIDUAL_GROUND_RULE_MODULE} table tbody`).on('click', 'tr', function() {
         updateGroundAtomContext(data, this.dataset.atom);
     });
@@ -566,22 +566,21 @@ function cleanGroundRuleString(ruleText) {
     return ruleText;
 }
 
-// Given data and ground rule ID returns the rule in non-DNF form
+// Given data and ground rule ID returns the rule in non-DNF form.
 function createGroundRule(data, groundRuleID) {
     let groundRuleObject = data["groundRules"][groundRuleID];
     let parentRule = data["rules"][groundRuleObject["ruleID"]]["cleanText"];
 
-    // Create patterns to find predicate / constants and label to be placed
-    // on them.
+    // Create patterns to find predicate / constants and label to be placed on them.
     let predicatePattern = new RegExp("\\w+\\s*\\(","g");
     let constantPattern = new RegExp("\\'\\w+\\'", "g");
     let nonVariableLabel = "__0_";
 
-    // Find all instances of predicates and constants in the parent rule
+    // Find all instances of predicates and constants in the parent rule.
     let predicates = [...parentRule.matchAll(predicatePattern)];
     let constants = [...parentRule.matchAll(constantPattern)];
 
-    // Collect indicies for all predicates and constants so we can label them
+    // Collect indices for all predicates and constants so we can label them.
     let indicies = []
     for (let i = 0; i < predicates.length; i++) {
         indicies.push(predicates[i].index);
@@ -591,26 +590,26 @@ function createGroundRule(data, groundRuleID) {
         indicies.push(constants[i].index + 1)
     }
 
-    // Sort in descending order so we can place labels with collected indicies
+    // Sort in descending order so we can place labels with collected indices.
     indicies = indicies.sort((a, b) => b - a);
 
-    // Apply the labels to a copy of the parent rule
+    // Apply the labels to a copy of the parent rule.
     let createdGroundRule = parentRule;
     for (let i = 0; i < indicies.length; i++) {
         let index = indicies[i];
         createdGroundRule = createdGroundRule.slice(0, index) + nonVariableLabel + createdGroundRule.slice(index);
     }
 
-    // Replace all variables in the labeled parent rule
+    // Replace all variables in the labeled parent rule.
     let varConstList = Object.entries(groundRuleObject["constants"]);
     for (let [variable, constant] of varConstList) {
         let re = new RegExp("\\b"+variable+"\\b","g");
-        // Add surrounding single quotes to variables
+        // Add surrounding single quotes to variables.
         constant = "\'" + constant + "\'";
         createdGroundRule = createdGroundRule.replace(re, constant);
     }
 
-    // Get rid of all labels
+    // Get rid of all labels.
     let replaceLabelsPattern = new RegExp(nonVariableLabel, "g");
     createdGroundRule = createdGroundRule.replace(replaceLabelsPattern, "");
 
@@ -701,7 +700,7 @@ function fetchGroundAtomSatisfaction(data, groundAtomID) {
 // Compute rule-level aggregate statistics on the given ground rules.
 // If the filter exists and is falsy for a ground rule, don't count it.
 // If the filter exists and is truthy for a ground rule,
-// then (in additiona to normal behavior) the ID of that ground rule will be appended to 'groundRules'.
+// then (in addition to normal behavior) the ID of that ground rule will be appended to 'groundRules'.
 function computeRuleAggregates(ruleIDs, groundRules, filterFunction) {
     let stats = {};
 
@@ -747,7 +746,7 @@ function computeRuleAggregates(ruleIDs, groundRules, filterFunction) {
     return stats;
 }
 
-// Compute the rule-level aggregate statistics and attatch them directly to the rule.
+// Compute the rule-level aggregate statistics and attach them directly to the rule.
 function indexRules(data) {
     let stats = computeRuleAggregates(Object.keys(data.rules), data.groundRules, null);
 
