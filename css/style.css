@@ -32,6 +32,11 @@ th {
     font-size: 64px;
 }
 
+.psl-viz .loading span {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
 .psl-viz .loading .animation {
     padding: 20px;
     background-color: black;
@@ -84,7 +89,8 @@ th {
 }
 
 /* Navbar links */
-.navbar a {
+.navbar a,
+.navbar span {
   float: left;
   display: block;
   color: #f2f2f2;

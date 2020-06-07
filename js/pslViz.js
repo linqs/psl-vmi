@@ -155,7 +155,7 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
     svgTransformed.append("text")
         .attr("class", "y-label")
         .attr("transform", "rotate(-90)")
-        .attr("y", 0 - (BAR_CHART_MARGIN.left / 1.25))
+        .attr("y", 0 - (BAR_CHART_MARGIN.left / 1.05))
         .attr("x", 0 - (innerHeight / 2))
         .attr("dy", "0.5em")
         .style("text-anchor", "middle")
@@ -285,14 +285,14 @@ function createTruthTable(data) {
         truthObjectList.push({
             "Prediction": data["groundAtoms"][key]["prediction"].toFixed(2),
             "Truth": data["truthMap"][key].toFixed(2),
-            "Predicate": data["groundAtoms"][key]["text"],
-            "Difference": Math.abs(data["truthMap"][key] - data["groundAtoms"][key]["prediction"]).toFixed(2),
+            "Ground Atom": data["groundAtoms"][key]["text"],
+            "Error": Math.abs(data["truthMap"][key] - data["groundAtoms"][key]["prediction"]).toFixed(2),
             "id": key,
         });
     }
 
     // Create table.
-    const predictionTruthCols = ['Predicate', 'Prediction', 'Truth', 'Difference'];
+    const predictionTruthCols = ['Ground Atom', 'Prediction', 'Truth', 'Error'];
     createTable(truthObjectList, predictionTruthCols, TRUTH_TABLE_TITLE, TRUTH_TABLE_MODULE);
 
     // Set context handler for all the truth atoms.
@@ -470,14 +470,14 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     let aggregateStats = fetchGroundAtomSatisfaction(data, groundAtomID);
     let groundAtomSatData = readSatisfactionData(aggregateStats);
 
-    // Grab navbar and update navbar with new atom context
-    let navbar = document.querySelector('.navbar');
+    // Update navbar with new atom context.
     let link = document.createElement('a');
     link.classList.add(NAVBAR_GROUND_ATOM_CONTEXT_CHANGER);
     link.setAttribute('href', '#');
     link.innerText = data["groundAtoms"][groundAtomID]["text"];
     link.onclick = removeGroundRuleContext;
-    navbar.appendChild(link);
+
+    $('.navbar').append(`<span class='${NAVBAR_GROUND_ATOM_CONTEXT_CHANGER}'>>></span>`).append(link);
 
     // Create new associated ground rules table
     createAssociatedGroundAtomsTable(data, groundAtomID, aggregateStats)
@@ -492,13 +492,13 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
 function updateGroundRuleContext(data, groundRuleKeyString) {
     removeGroundRuleContext();
 
-    // Grab navbar and update navbar with new rule context
-    let navbar = document.querySelector('.navbar');
+    // Update navbar with new rule context.
     let link = document.createElement('a');
     link.classList.add(NAVBAR_GROUND_RULE_CONTEXT_CHANGER);
     link.setAttribute('href', '#');
     link.innerText = createGroundRule(data, groundRuleKeyString)["Ground Rule"];
-    navbar.appendChild(link);
+
+    $('.navbar').append(`<span class='${NAVBAR_GROUND_RULE_CONTEXT_CHANGER}'>>></span>`).append(link);
 
     // Create new individual ground rule
     createIndividualGroundRuleTable(data, groundRuleKeyString);
