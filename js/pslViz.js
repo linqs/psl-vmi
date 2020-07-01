@@ -351,7 +351,7 @@ function createRuleOverviewTable(rules) {
         overviewData.push({
             "ID": rule["index"],
             "Rule": rule["cleanText"],
-            "Weighted": rule["weighted"],
+            "Weighted": (isNaN(rule["weighted"]) ?  "∞" : rule["weighted"]),
             "Count": rule["count"],
             "Total Dissatisfaction": rule["dissatisfaction"].toFixed(2),
             "Mean Dissatisfaction": rule["meanDissatisfaction"].toFixed(2),
@@ -427,7 +427,8 @@ function readSatisfactionData(rules) {
     for (const ruleID in rules) {
         let rule = rules[ruleID];
 
-        if (!rule["weighted"]) {
+        // If rule["weighted"] is not a number, there is no weight, so continue
+        if (isNaN(rule["weighted"])) {
             continue;
         }
 
