@@ -372,7 +372,7 @@ function createRuleOverviewTable(data) {
         var ruleData = {
             "Rule" : cleanRuleString(rule["Rule"]),
             "ID" : rule["ID"],
-            "Weighted" : rule["Weighted"],
+            "Weighted" : (!isNaN(rule["Weighted"]) ? rule["Weighted"] : "∞"),
             "Count" : rule["Count"],
             "Total Dissatisfaction": rule["Total Dissatisfaction"].toFixed(2),
             "Mean Dissatisfaction": rule["Mean Dissatisfaction"].toFixed(2)
@@ -517,7 +517,7 @@ function readSatisfactionData(data) {
     var ruleSatData = [];
     for (var i = 0; i < data.length; i++) {
         var rule = data[i];
-        if (rule["Weighted"] == true) {
+        if (!isNaN(rule["Weighted"])) {
             var ruleData = {
                 "Rule" : rule["Rule"],
                 "ID" : rule["ID"],
