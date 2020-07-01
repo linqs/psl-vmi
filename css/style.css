@@ -25,6 +25,32 @@ th {
     height: 50px;
 }
 
+.psl-viz .loading {
+    display: none;
+
+    text-align: center;
+    font-size: 64px;
+}
+
+.psl-viz .loading span {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.psl-viz .loading .animation {
+    padding: 20px;
+    background-color: black;
+    border-radius: 20px;
+}
+
+.psl-viz .loading .animation video {
+    width: 300px;
+}
+
+.psl-viz .splash {
+    text-align: center;
+}
+
 .splash-info {
     text-align: center;
     display: block;
@@ -63,7 +89,8 @@ th {
 }
 
 /* Navbar links */
-.navbar a {
+.navbar a,
+.navbar span {
   float: left;
   display: block;
   color: #f2f2f2;
@@ -108,7 +135,7 @@ rect.mover {
     width: 100%;
 
     padding-top: 50px;
-    padding-bottom: 60px;
+    padding-bottom: 80px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -129,14 +156,14 @@ rect.mover {
     box-shadow: 3px 3px #bbb;
 }
 
-/* Order for  all the modules*/
-.psl-viz .module-overview-table {order: 10;} /*rule overview table*/
-.psl-viz .module-compatability-chart {order: 20;} /*Compatability chart*/
-.psl-viz .module-rulecount-chart {order: 30;} /*rule count chart*/
-.psl-viz .module-violation-table {order: 40;} /*violation table*/
-.psl-viz .module-truth-table {order: 50;} /*truth table*/
-.psl-viz .module-ground-atom-compatability-chart {order: 60;}/*ground atom compatability */
-.psl-viz .module-associated-rules-table {order: 70;} /*associated ground rules per atom*/
+/* Order for  all the modules */
+.psl-viz .module-overview-table {order: 10;} /* rule overview table */
+.psl-viz .module-compatibility-chart {order: 20;} /* Compatibility chart */
+.psl-viz .module-rulecount-chart {order: 30;} /* rule count chart */
+.psl-viz .module-violation-table {order: 40;} /* violation table */
+.psl-viz .module-truth-table {order: 50;} /* truth table */
+.psl-viz .module-ground-atom-compatibility-chart {order: 60;}/* ground atom compatibility */
+.psl-viz .module-associated-rules-table {order: 70;} /* associated ground rules per atom */
 .psl-viz .module-individual-ground-rule-table {order: 80;} /* individual ground rule table */
 
 .viz-module select {
@@ -186,10 +213,10 @@ rect.mover {
 
 /* footer styling */
 footer {
-    display: block;
     bottom: 0;
     position: fixed;
     width: 100%;
+    height: 80px;
 }
 
 footer.site-footer {
@@ -227,12 +254,11 @@ footer.site-footer span {
 }
 
 h2.footer-heading {
-   margin-bottom: 0;
+   margin: 0;
 }
 
 .footer-heading {
     font-size: 18px;
-    margin-bottom: 15px;
 }
 
 .simple-footer span {

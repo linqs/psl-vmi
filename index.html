@@ -2,6 +2,7 @@
 <html>
     <head>
         <meta charset='utf-8'>
+        <link rel="icon" href="favicon.ico" type="image/x-icon" />
 
         <script type="text/javascript" src="js/d3.v3.min.js" charset="utf-8"></script>
         <script type="text/javascript" src='js/jquery-3.3.1.min.js'></script>
@@ -12,39 +13,51 @@
     </head>
     <body>
         <div class="psl-viz">
-            <img src="./assets/psl_logo.svg" alt="The PSL logo">
-            <div class="splash-info">
-                <h1> PSL Data Visualization </h1>
-                <h2> Created by the UCSC LINQS Lab </h2>
-                <p>
-                    A PSL Visualization that can be used for model understanding and debugging.
-                    The application is made up of multiple modules that convey information from
-                    different layers of a PSL model. These modules are organized by: model information,
-                    ground rule information, and ground atom information. We hope this tool can help
-                    PSL developers create the best models possible! The projects source code can be found
-                    on <a href="https://github.com/AaronRodden/PSLViz"> Github</a>.
-                </p>
-                <p> Provide a .json file from a PSL run with the -viz flag </p>
-                <input type="file" class="input">
+            <div class='splash'>
+                <img src="assets/psl_logo.svg" alt="The PSL logo">
+                <div class="splash-info">
+                    <h1> PSL Data Visualization </h1>
+                    <h2> Created by the UCSC LINQS Lab </h2>
+                    <p>
+                        A PSL Visualization that can be used for model understanding and debugging.
+                        The application is made up of multiple modules that convey information from
+                        different layers of a PSL model. These modules are organized by: model information,
+                        ground rule information, and ground atom information. We hope this tool can help
+                        PSL developers create the best models possible! The projects source code can be found
+                        on <a href="https://github.com/AaronRodden/PSLViz">Github</a>.
+                    </p>
+                    <p> Provide a .json file from a PSL run with the -viz flag </p>
+                    <input type="file" class="psl-data-input">
+                </div>
+            </div>
+
+            <div class='loading'>
+                <span>Rebuilding Model...</span>
+                <div class='animation'>
+                    <video autoplay loop muted playsinline>
+                        <source src="assets/linqs-logo-animation.webm" type="video/webm">
+                        <!-- <img src="assets/linqs-logo-animation.gif"> -->
+                    </video>
+                </div>
             </div>
         </div>
+
         <footer class="site-footer">
             <div class="wrapper">
                 <div class="simple-footer">
                     <h2 class="footer-heading">Probabilistic Soft Logic Visualization</h2>
                     <span>
                         <ul class="social-media-list">
-                            <li><a href="https://github.com/linqs"><svg class="svg-icon"><use xlink:href="./assets/minima-social-icons.svg#github"></use></svg></a></li>
-                            <li><a href="https://www.twitter.com/LINQS_edu"><svg class="svg-icon"><use xlink:href="./assets/minima-social-icons.svg#twitter"></use></svg></a></li>
-                            <li><a href="https://youtube.com/LINQSLab"><svg class="svg-icon"><use xlink:href="./assets/minima-social-icons.svg#youtube"></use></svg></a></li>
-                            <li><a href="https://plus.google.com/106422136513784453367"><svg class="svg-icon"><use xlink:href="./assets/minima-social-icons.svg#googleplus"></use></svg></a></li>
+                            <li><a href="https://github.com/linqs"><svg class="svg-icon"><use xlink:href="assets/minima-social-icons.svg#github"></use></svg></a></li>
+                            <li><a href="https://www.twitter.com/LINQS_edu"><svg class="svg-icon"><use xlink:href="assets/minima-social-icons.svg#twitter"></use></svg></a></li>
+                            <li><a href="https://youtube.com/LINQSLab"><svg class="svg-icon"><use xlink:href="assets/minima-social-icons.svg#youtube"></use></svg></a></li>
                         </ul>
                     </span>
                 </div>
                 <div class="simple-footer">
                     <span>
                         © 2020 LINQS Resreach Group.
-                        See <a href="https://github.com/linqs/psl-website/blob/master/LICENSE.md">license</a>.
+                        See <a href="https://github.com/AaronRodden/PSLViz/blob/master/LICENSE.md">license</a>.
                     </span>
 
                     <div class="issues">
