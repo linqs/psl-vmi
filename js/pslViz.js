@@ -23,22 +23,20 @@ const TRUTH_TABLE_MODULE = "module-truth-table";
 const TRUTH_TABLE_TITLE = "Truth Table";
 const VIOLATED_GROUND_RULES_MODULE = "module-violation-table";
 const VIOLATED_GROUND_RULES_TABLE_TITLE = "Violated Constraints";
-const GROUND_ATOM_SATISFACTION_MODULE = "module-ground-atom-compatibility-chart";
+const GROUND_ATOM_AGGREGATE_MODULE = "module-ground-atom-aggregate-chart";
 const GROUND_ATOM_RULES_MODULE = "module-associated-rules-table";
 const ASSOCIATED_GROUND_RULES_TABLE_TITLE = "Associated Ground Rules";
 const INDIVIDUAL_GROUND_RULE_MODULE = "module-individual-ground-rule-table";
-const RULE_COUNT_MODULE = "module-rulecount-chart";
-const RULE_COUNT_Y_LABEL = "Count";
-const RULE_COUNT_CHART_TITLE = "Ground Rule Count";
-const RULE_SATISFACTION_MODULE = "module-compatibility-chart";
-const RULE_SATISFACTION_CHART_TITLE = "Rule Compatibility";
+const RULE_AGGREGATE_MODULE = "module-aggregate-chart";
+const RULE_AGGREGATE_CHART_TITLE = "Aggregate Rule Stats";
 const DEF_BAR_CHART_X_LABEL = "Rule";
-const DEF_SATISFACTION_Y_LABEL = "Total Satisfaction";
-const SATISFACTION_Y_LABELS = [
+const DEF_AGGREGATE_Y_LABEL = "Total Satisfaction";
+const AGGREGATE_RULE_STATS_Y_LABELS = [
     "Total Satisfaction",
     "Mean Satisfaction",
     "Total Dissatisfaction",
-    "Mean Dissatisfaction"
+    "Mean Dissatisfaction",
+    "Count",
 ];
 
 // Regular expressions to clean rules.
@@ -274,7 +272,7 @@ function removeGroundRuleContext() {
 }
 
 function removeGroundAtomContext() {
-    $('.' + GROUND_ATOM_SATISFACTION_MODULE).remove();
+    $('.' + GROUND_ATOM_AGGREGATE_MODULE).remove();
     $('.' + GROUND_ATOM_RULES_MODULE).remove();
     $('.' + NAVBAR_GROUND_ATOM_CONTEXT_CHANGER).remove();
 }
@@ -421,8 +419,8 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
 }
 
 // Get the rule data needed for the Satisfaction module
-function readSatisfactionData(rules) {
-    let ruleSatData = [];
+function readAggregateRuleData(rules) {
+    let ruleAggregateData = [];
 
     for (const ruleID in rules) {
         let rule = rules[ruleID];
@@ -432,34 +430,18 @@ function readSatisfactionData(rules) {
             continue;
         }
 
-        ruleSatData.push({
+        ruleAggregateData.push({
             "ID": rule["index"],
             "Rule": rule["cleanText"],
             "Total Dissatisfaction": rule["dissatisfaction"],
             "Total Satisfaction": rule["satisfaction"],
             "Mean Dissatisfaction": rule["meanDissatisfaction"],
             "Mean Satisfaction": rule["meanSatisfaction"],
-        });
-    }
-
-    return ruleSatData;
-}
-
-// Get the rule data needed for the rule count module
-function readRuleCountData(rules) {
-    let ruleCountData = [];
-
-    for (const ruleID in rules) {
-        let rule = rules[ruleID];
-
-        ruleCountData.push({
-            "ID": rule["index"],
-            "Rule": rule["cleanText"],
             "Count": rule["count"],
         });
     }
 
-    return ruleCountData;
+    return ruleAggregateData;
 }
 
 function updateGroundAtomContext(data, groundAtomKeyString) {
@@ -469,7 +451,8 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     let groundAtomID = parseInt(groundAtomKeyString);
 
     let aggregateStats = fetchGroundAtomSatisfaction(data, groundAtomID);
-    let groundAtomSatData = readSatisfactionData(aggregateStats);
+    let groundAtomAggregateData = readAggregateRuleData(aggregateStats);
+    console.log(groundAtomAggregateData);
 
     // Update navbar with new atom context.
     let link = document.createElement('a');
@@ -484,10 +467,10 @@ function updateGroundAtomContext(data, groundAtomKeyString) {
     createAssociatedGroundAtomsTable(data, groundAtomID, aggregateStats)
 
     // Create Compatibility Chart with Ground Atom Context
-    let barChartTitle = data["groundAtoms"][groundAtomID]["text"] + " " + RULE_SATISFACTION_CHART_TITLE;
-    setupBarChartModule(groundAtomSatData, DEF_BAR_CHART_X_LABEL,
-            DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
-            GROUND_ATOM_SATISFACTION_MODULE, barChartTitle);
+    let barChartTitle = data["groundAtoms"][groundAtomID]["text"] + " " + RULE_AGGREGATE_CHART_TITLE;
+    setupBarChartModule(groundAtomAggregateData, DEF_BAR_CHART_X_LABEL,
+            DEF_AGGREGATE_Y_LABEL, AGGREGATE_RULE_STATS_Y_LABELS,
+            GROUND_ATOM_AGGREGATE_MODULE, barChartTitle);
 }
 
 function updateGroundRuleContext(data, groundRuleKeyString) {
@@ -663,17 +646,12 @@ function init(data) {
     // Make each of our tables a tablesorter instance.
     $(`.viz-module table.tablesorter`).tablesorter();
 
-    // Satisfaction Module
-    let aggregateStats = readSatisfactionData(data.rules);
+    // Aggregate Rule Stats Module
+    let aggregateStats = readAggregateRuleData(data.rules);
+    console.log(aggregateStats);
     setupBarChartModule(aggregateStats, DEF_BAR_CHART_X_LABEL,
-            DEF_SATISFACTION_Y_LABEL, SATISFACTION_Y_LABELS,
-            RULE_SATISFACTION_MODULE, RULE_SATISFACTION_CHART_TITLE);
-
-    // Rule Count Module
-    let ruleCountData = readRuleCountData(data.rules);
-    setupBarChartModule(ruleCountData, DEF_BAR_CHART_X_LABEL,
-            RULE_COUNT_Y_LABEL, undefined, RULE_COUNT_MODULE,
-            RULE_COUNT_CHART_TITLE);
+            DEF_AGGREGATE_Y_LABEL, AGGREGATE_RULE_STATS_Y_LABELS,
+            RULE_AGGREGATE_MODULE, RULE_AGGREGATE_CHART_TITLE);
 }
 
 // Fetch the per-rule satisfaction data for a ground atom.

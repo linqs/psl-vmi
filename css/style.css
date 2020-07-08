@@ -158,11 +158,11 @@ rect.mover {
 
 /* Order for  all the modules */
 .psl-viz .module-overview-table {order: 10;} /* rule overview table */
-.psl-viz .module-compatibility-chart {order: 20;} /* Compatibility chart */
+.psl-viz .module-aggregate-chart {order: 20;} /* Aggregate Stats chart */
 .psl-viz .module-rulecount-chart {order: 30;} /* rule count chart */
 .psl-viz .module-violation-table {order: 40;} /* violation table */
 .psl-viz .module-truth-table {order: 50;} /* truth table */
-.psl-viz .module-ground-atom-compatibility-chart {order: 60;}/* ground atom compatibility */
+.psl-viz .module-ground-atom-aggregate-chart {order: 60;}/* ground atom aggregate stats */
 .psl-viz .module-associated-rules-table {order: 70;} /* associated ground rules per atom */
 .psl-viz .module-individual-ground-rule-table {order: 80;} /* individual ground rule table */
 
