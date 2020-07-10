@@ -89,7 +89,8 @@ function transformBarChart(chart, barData) {
     }
 
     // Redefine the scale for y axis
-    chart.yScale.domain([0, d3.max(data, function(row) { return row.value })]);
+    // Ensure that the mean charts always have a scale of [0,1]
+    chart.yScale.domain((chart.yAxisLabel.includes("Mean")) ? [0, 1] : [0, d3.max(data, function (d) { return d.value; })])
 
     // Update the y-axis label
     chart.svg.transition().select(".y-label")
@@ -132,8 +133,9 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
         .domain(data.map(function (d) { return d.ruleNo; }))
         .rangeBands([0, innerWidth], 0.2);
 
+    // Ensure that the mean charts always have a scale of [0,1]
     let yScale = d3.scale.linear()
-        .domain([0, d3.max(data, function (d) { return d.value; })])
+        .domain((yAxisLabel.includes("Mean")) ? [0, 1] : [0, d3.max(data, function (d) { return d.value; })])
         .range([innerHeight, 0]);
 
     let xAxis = d3.svg.axis().scale(xScale).orient("bottom");
