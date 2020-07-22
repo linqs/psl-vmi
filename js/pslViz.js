@@ -215,8 +215,8 @@ function createBarChart(chartData, div, xAxisLabel, yAxisLabel, chartId) {
 }
 
 function createTable(data, columns, title, className) {
-	let div = d3.select('.psl-viz').append('div');
-	div.classed('viz-module', true);
+    let div = d3.select('.psl-viz').append('div');
+    div.classed('viz-module', true);
     div.classed(className, true);
 
     let titleDiv = div.append('div');
@@ -227,7 +227,7 @@ function createTable(data, columns, title, className) {
     tableDiv.classed('table-container', true);
 
 	let table = tableDiv.append('table')
-    .attr("class", "tablesorter")
+        .attr("class", "tablesorter")
     table.append("thead").append("tr");
 
     let headers = table.select("tr").selectAll("th")
@@ -250,8 +250,8 @@ function createTable(data, columns, title, className) {
         rows.attr('data-atom', function(atom) { return atom.id; });
     }
 
-	// create a cell in each row for each column
-	let cells = rows.selectAll('td')
+    // create a cell in each row for each column
+    let cells = rows.selectAll('td')
         .data(function (row) {
             return columns.map(function (column) {
                 return {
@@ -516,8 +516,8 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions, classNam
 
     let div = d3.select('.psl-viz').append("div");
     div.classed('viz-module', true);
-
     div.classed(className, true);
+
     let titleDiv = div.append('div');
     titleDiv.attr('class', 'title');
     titleDiv.text(title);
