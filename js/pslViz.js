@@ -246,7 +246,7 @@ function createTable(data, columns, title, className) {
     // different functionality on row click. Perhaps this should be changed?
     if (className == GROUND_ATOM_RULES_MODULE) {
         rows.attr('data-rule', function (row) { return row.id; });
-    } else if (className == TRUTH_TABLE_MODULE || INDIVIDUAL_GROUND_RULE_MODULE) {
+    } else if (className == TRUTH_TABLE_MODULE || className == INDIVIDUAL_GROUND_RULE_MODULE) {
         rows.attr('data-atom', function(atom) { return atom.id; });
     }
 
