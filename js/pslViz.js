@@ -74,12 +74,8 @@ const GROUND_RULE_STRING_REPLACEMENTS = [
     [/(\('[^']+' != '[^']+'\) & )|( & \('[^']+' != '[^']+'\))/g, ""],
 ];
 
-function updateBarChart(chart, data, newYVal) {
-    chart.yAxisLabel = newYVal;
-    transformBarChart(chart, data);
-}
+function updateBarChart(chart, barData) {
 
-function transformBarChart(chart, barData) {
     let data = [];
     for (let i = 1; i < barData.length + 1; i++) {
         data.push({
@@ -317,7 +313,6 @@ function createViolationTable(data) {
         for (const groundRuleID in groundRules) {
             if (groundRules[groundRuleID]["ruleID"] == ruleID && groundRules[groundRuleID]["dissatisfaction"] > 0) {
                 let violationObject = {
-                    //TODO: Constraints seem to never be in groundRules.
                     "Violated Constraint": "",
                     "Dissatisfaction": groundRules[groundRuleID]["dissatisfaction"].toFixed(2),
                 };
@@ -531,7 +526,8 @@ function setupBarChartModule(data, xAxisLabel, yAxisLabel, menuOptions, classNam
     if (menuId != undefined) {
         document.getElementsByClassName(menuId)[0].onchange = function () {
             let newVal = document.getElementsByClassName(menuId)[0].value;
-            updateBarChart(chart, data, newVal);
+            chart.yAxisLabel = newVal;
+            updateBarChart(chart, data);
         };
     }
 }
