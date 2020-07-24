@@ -222,7 +222,7 @@ function createTable(data, columns, title, className) {
     let tableDiv = div.append('div');
     tableDiv.classed('table-container', true);
 
-	let table = tableDiv.append('table')
+    let table = tableDiv.append('table')
         .attr("class", "tablesorter")
     table.append("thead").append("tr");
 
