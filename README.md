@@ -10,4 +10,4 @@ Or specify a path to for data to be written into:
 ```bash
 $ ./run.sh --visualization <path>
 ```
-Visit [linqs.github.io/psl-vmi/] and then upload the data file.
+Visit [linqs.github.io/psl-vmi/](https://linqs.github.io/psl-vmi/) and then upload the data file.
