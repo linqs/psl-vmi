@@ -10,4 +10,4 @@ Or specify a path to for data to be written into:
 ```bash
 $ ./run.sh --visualization <path>
 ```
-Open the html file with any browser and then select the data file from the file uploader.
+Visit [linqs.github.io/psl-vmi/](https://linqs.github.io/psl-vmi/) and then upload the data file.
