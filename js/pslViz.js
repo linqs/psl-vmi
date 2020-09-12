@@ -72,6 +72,12 @@ const GROUND_RULE_STRING_REPLACEMENTS = [
     // "& ('123' != '432')" -> ""
     // "('123' != '432') &" -> ""
     [/(\('[^']+' != '[^']+'\) & )|( & \('[^']+' != '[^']+'\))/g, ""],
+
+    // "+ -1.0" -> "-1.0"
+    [/\+ -(\d+\.\d+)/g, "- $1"],
+
+    // "1.0 * A" -> "A"
+    [/1\.0 \*/g, ""],
 ];
 
 function updateBarChart(chart, barData) {
@@ -306,14 +312,14 @@ function createViolationTable(data) {
 
     let violationObjectList = [];
     for (const ruleID in rulesObject) {
-        if (rulesObject[ruleID]["weighted"] != false) {
+        if (!isNaN(rulesObject[ruleID]["weighted"])) {
             continue
         }
 
         for (const groundRuleID in groundRules) {
             if (groundRules[groundRuleID]["ruleID"] == ruleID && groundRules[groundRuleID]["dissatisfaction"] > 0) {
                 let violationObject = {
-                    "Violated Constraint": "",
+                    "Violated Constraint": createGroundRule(data, groundRuleID)["Ground Rule"],
                     "Dissatisfaction": groundRules[groundRuleID]["dissatisfaction"].toFixed(2),
                 };
                 violationObjectList.push(violationObject);
@@ -386,8 +392,31 @@ function createIndividualGroundRuleTable(data, groundRuleKeyString) {
     let groundRule = data["groundRules"][groundRuleKeyString];
 
     let atomElementList = []
-    for (let i = 0; i < groundRule["groundAtoms"].length; i++) {
-        let atomID  = groundRule["groundAtoms"][i];
+    let atomID;
+    for (let i = 0; i < groundRule["lhs"].length; i++) {
+        let lhsObject = groundRule["lhs"][i];
+        if (Array.isArray(lhsObject)) {
+            atomID = lhsObject[0];
+        }
+        else {
+            atomID = lhsObject;
+        }
+        let tableElem = {
+            "Ground Atom" : groundAtomObject[atomID]["text"],
+            "Truth Value" : groundAtomObject[atomID]["prediction"].toFixed(2),
+            "id" : atomID
+        }
+        atomElementList.push(tableElem);
+    }
+
+    for (let i = 0; i < groundRule["rhs"].length; i++) {
+        let rhsObject = groundRule["rhs"][i];
+        if (Array.isArray(rhsObject)) {
+            atomID = rhsObject[0];
+        }
+        else {
+            atomID = rhsObject;
+        }
         let tableElem = {
             "Ground Atom" : groundAtomObject[atomID]["text"],
             "Truth Value" : groundAtomObject[atomID]["prediction"].toFixed(2),
@@ -548,52 +577,54 @@ function cleanGroundRuleString(ruleText) {
     return ruleText;
 }
 
+// Helper function to take the data files lhs/rhs formula objects and deconstruct them into flatten arrays.
+function deconstructFormula(data, formula, operator) {
+    let deconstructedFormula = [];
+    for (let i = 0; i < formula.length; i++){
+        let formulaObject = formula[i];
+        if (Array.isArray(formulaObject)){
+            if (operator == ">>" || operator == "") {
+                deconstructedFormula.push("!" + data["groundAtoms"][formulaObject[0]]["text"]);
+            }
+            else {
+                deconstructedFormula.push(formulaObject[1].toFixed(1).toString() + " * " + data["groundAtoms"][formulaObject[0]]["text"]);
+            }
+        }
+        else {
+            deconstructedFormula.push(data["groundAtoms"][formulaObject]["text"]);
+        }
+    }
+    return deconstructedFormula;
+}
+
 // Given data and ground rule ID returns the rule in non-DNF form.
 function createGroundRule(data, groundRuleID) {
     let groundRuleObject = data["groundRules"][groundRuleID];
     let parentRule = data["rules"][groundRuleObject["ruleID"]]["cleanText"];
+    let operator = groundRuleObject["operator"];
 
-    // Create patterns to find predicate / constants and label to be placed on them.
-    let predicatePattern = new RegExp("\\w+\\s*\\(","g");
-    let constantPattern = new RegExp("\\'\\w+\\'", "g");
-    let nonVariableLabel = "__0_";
-
-    // Find all instances of predicates and constants in the parent rule.
-    let predicates = [...parentRule.matchAll(predicatePattern)];
-    let constants = [...parentRule.matchAll(constantPattern)];
-
-    // Collect indices for all predicates and constants so we can label them.
-    let indicies = []
-    for (let i = 0; i < predicates.length; i++) {
-        indicies.push(predicates[i].index);
+    // Deconstruct the formula objects from the data file and put into a flattened array.
+    let createdGroundRule = "";
+    let lhsTemp = deconstructFormula(data, groundRuleObject.lhs, operator);
+    let rhsTemp = deconstructFormula(data, groundRuleObject.rhs, operator);
+    // Depending on the operator, join the flattened array via '&' or '+'.
+    if (operator == ">>" || operator == "") {
+        createdGroundRule += lhsTemp.join(" & ");
     }
-
-    for (let i = 0; i < constants.length; i++) {
-        indicies.push(constants[i].index + 1)
+    else {
+        createdGroundRule += lhsTemp.join(" + ");
     }
-
-    // Sort in descending order so we can place labels with collected indices.
-    indicies = indicies.sort((a, b) => b - a);
-
-    // Apply the labels to a copy of the parent rule.
-    let createdGroundRule = parentRule;
-    for (let i = 0; i < indicies.length; i++) {
-        let index = indicies[i];
-        createdGroundRule = createdGroundRule.slice(0, index) + nonVariableLabel + createdGroundRule.slice(index);
+    // Add the operator between the lhs and rhs side.
+    createdGroundRule += " " + operator + " ";
+    // Join the flattened array via '&' or '+', for rhs arithmetic rules, add the value after the '=' sign.
+    if (operator == ">>" || operator == "") {
+        createdGroundRule += rhsTemp.join(" & ");
     }
-
-    // Replace all variables in the labeled parent rule.
-    let varConstList = Object.entries(groundRuleObject["constants"]);
-    for (let [variable, constant] of varConstList) {
-        let re = new RegExp("\\b"+variable+"\\b","g");
-        // Add surrounding single quotes to variables.
-        constant = "\'" + constant + "\'";
-        createdGroundRule = createdGroundRule.replace(re, constant);
+    else {
+        createdGroundRule += rhsTemp.join(" + ");
+        let rhsConstant = parentRule.match('= (\\d+\\.\\d+)');
+        createdGroundRule += " " + rhsConstant[1];
     }
-
-    // Get rid of all labels.
-    let replaceLabelsPattern = new RegExp(nonVariableLabel, "g");
-    createdGroundRule = createdGroundRule.replace(replaceLabelsPattern, "");
 
     return {
         "Ground Rule" : cleanGroundRuleString(createdGroundRule),
@@ -661,7 +692,7 @@ function fetchGroundAtomSatisfaction(data, groundAtomID) {
     }
 
     stats = computeRuleAggregates(Object.keys(data.rules), data.groundRules, function(groundRule) {
-        return groundRule.groundAtoms.includes(groundAtomID);
+        return groundRule.lhs.flat().includes(groundAtomID) || groundRule.rhs.flat().includes(groundAtomID);
     });
 
     for (const ruleID in data.rules) {
