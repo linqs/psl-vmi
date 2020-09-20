@@ -790,12 +790,17 @@ function handleDataFile() {
 
     let reader = new FileReader();
     reader.onload = function(event) {
-        let text = event.target.result;
+        let compressedData = new Uint8Array(event.target.result);
+
+        let gunZipper = new Zlib.Gunzip(compressedData);
+        let decompressedData = gunZipper.decompress();
+
+        let text = new TextDecoder("utf-8").decode(decompressedData);
         let json = JSON.parse(text);
         init(json);
     }
 
-    reader.readAsText(this.files[0]);
+    reader.readAsArrayBuffer(this.files[0]);
 }
 
 $(document).ready(function() {
